@@ -16,6 +16,7 @@ package org.camunda.bpm.engine.test.api.history;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -41,7 +42,6 @@ import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.cmd.HistoryCleanupCmd;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
-import org.camunda.bpm.engine.impl.jobexecutor.historycleanup.BatchWindow;
 import org.camunda.bpm.engine.impl.jobexecutor.historycleanup.HistoryCleanupHelper;
 import org.camunda.bpm.engine.impl.jobexecutor.historycleanup.HistoryCleanupJobHandlerConfiguration;
 import org.camunda.bpm.engine.impl.metrics.Meter;
@@ -73,6 +73,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.RuleChain;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -82,6 +85,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Svetlana Dorokhova
  */
+@RunWith(Parameterized.class)
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoryCleanupTest {
 
@@ -102,12 +106,24 @@ public class HistoryCleanupTest {
   protected String defaultEndTime;
   protected int defaultBatchSize;
 
+  protected boolean isHierarchicalCleanup;
+
+  @Parameterized.Parameters(name = "Hierachical History Cleanup: {0}")
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {{true}, {false}});
+  }
+
+  public HistoryCleanupTest(boolean isHierarchicalCleanup) {
+    this.isHierarchicalCleanup = isHierarchicalCleanup;
+  }
+
   protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule() {
     public ProcessEngineConfiguration configureEngine(ProcessEngineConfigurationImpl configuration) {
       configuration.setHistoryCleanupBatchSize(20);
       configuration.setHistoryCleanupBatchThreshold(10);
       configuration.setDefaultNumberOfRetries(5);
       configuration.setHistoryCleanupDegreeOfParallelism(NUMBER_OF_THREADS);
+      configuration.setHierarchicalHistoryCleanup(isHierarchicalCleanup);
       return configuration;
     }
   };
@@ -1207,6 +1223,11 @@ public class HistoryCleanupTest {
     thrown.expectMessage("historyCleanupBatchThreshold");
 
     processEngineConfiguration.initHistoryCleanup();
+  }
+
+  @Test
+  public void testCleanupOrder() {
+
   }
 
   private Date getNextRunWithinBatchWindow(Date currentTime) {
