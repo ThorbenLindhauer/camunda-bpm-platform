@@ -18,6 +18,11 @@ import java.io.Serializable;
 import java.util.Map;
 
 import org.camunda.bpm.engine.impl.cfg.CommandChecker;
+import org.camunda.bpm.engine.impl.context.Context;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstanceGenerator;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstanceState;
+import org.camunda.bpm.engine.impl.hackdays.EventLoop;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.TaskEntity;
@@ -59,6 +64,14 @@ public class CompleteTaskCmd implements Command<Void>, Serializable {
 
   protected void completeTask(TaskEntity task) {
     task.complete();
+
+    ActivityInstanceGenerator treeGenerator = new ActivityInstanceGenerator(Context.getCommandContext());
+    ActivityInstance activityInstance = treeGenerator.buildActivityInstanceTree(task.getExecution());
+    activityInstance.setState(ActivityInstanceState.COMPLETING);
+
+    EventLoop eventLoop = new EventLoop();
+    eventLoop.submit(activityInstance);
+    eventLoop.doWork();
   }
 
   protected void checkCompleteTask(TaskEntity task, CommandContext commandContext) {

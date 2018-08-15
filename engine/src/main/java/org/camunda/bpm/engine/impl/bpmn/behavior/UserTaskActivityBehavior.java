@@ -17,6 +17,7 @@ import java.util.Collection;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.el.ExpressionManager;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
 import org.camunda.bpm.engine.impl.migration.instance.MigratingActivityInstance;
 import org.camunda.bpm.engine.impl.migration.instance.MigratingUserTaskInstance;
 import org.camunda.bpm.engine.impl.migration.instance.parser.MigratingInstanceParseContext;
@@ -45,6 +46,11 @@ public class UserTaskActivityBehavior extends TaskActivityBehavior implements Mi
 
   public UserTaskActivityBehavior(TaskDecorator taskDecorator) {
     this.taskDecorator = taskDecorator;
+  }
+
+  @Override
+  public void execute(ActivityInstance activityInstance) throws Exception {
+    performExecution(activityInstance.getExecution());
   }
 
   @Override

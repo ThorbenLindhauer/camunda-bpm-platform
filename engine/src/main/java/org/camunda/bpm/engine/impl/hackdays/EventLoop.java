@@ -34,6 +34,7 @@ public class EventLoop {
   public EventLoop()
   {
     activityInstanceWorkers.put(ActivityInstanceState.ACTIVATED, new ExecuteActivityWorker());
+    activityInstanceWorkers.put(ActivityInstanceState.COMPLETING, new LeaveActivityWorker());
     activityInstanceWorkers.put(ActivityInstanceState.COMPLETED, new AdvanceActivityHandler());
   }
 

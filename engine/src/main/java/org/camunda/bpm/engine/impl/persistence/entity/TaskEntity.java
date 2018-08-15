@@ -312,7 +312,7 @@ public class TaskEntity extends AbstractVariableScope implements Task, DelegateT
     if (executionId!=null) {
       ExecutionEntity execution = getExecution();
       execution.removeTask(this);
-      execution.signal(null, null);
+//      execution.signal(null, null);
     }
   }
 

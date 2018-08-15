@@ -50,7 +50,10 @@ public abstract class ActivityInstance implements ElementInstance {
     return activity;
   }
 
-  public void invokeBehavior() {
+  /**
+   * on ACTIVATED
+   */
+  public void invokeExecuteBehavior() {
     try {
       activity.getActivityBehavior().execute(this);
     } catch (RuntimeException e) {
@@ -58,6 +61,14 @@ public abstract class ActivityInstance implements ElementInstance {
     } catch (Exception e) {
       throw new PvmException("couldn't execute activity <" + activity.getProperty("type") + " id=\"" + activity.getId() + "\" ...>: " + e.getMessage(), e);
     }
+  }
+
+  /**
+   * on COMPLETING
+   */
+  public void invokeLeaveBehavior()
+  {
+    activity.getActivityBehavior().leave(this);
   }
 
   public ScopeActivityInstance getParent() {

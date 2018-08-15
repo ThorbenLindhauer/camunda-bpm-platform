@@ -33,6 +33,20 @@ public class ScopeActivityInstance extends ActivityInstance {
     super(null, null);
     this.execution = ExecutionEntity.createNewExecution();
     this.execution.setProcessInstance(execution);
+    this.execution.setProcessDefinition(processDefinition);
+  }
+
+  /**
+   * constructur for deserialization
+   */
+  public ScopeActivityInstance(ScopeActivityInstance parent, ExecutionEntity execution, ActivityImpl activity)
+  {
+    super(parent, activity);
+    this.execution = execution;
+    if (parent != null)
+    {
+      this.parent.children.add(this);
+    }
   }
 
   public ScopeActivityInstance(ScopeActivityInstance parent, ActivityImpl activity, ExecutionEntity attachableExecution)
@@ -40,6 +54,7 @@ public class ScopeActivityInstance extends ActivityInstance {
     super(parent, activity);
     this.execution = attachableExecution.createExecution();
     this.execution.setActivity(activity);
+    this.execution.enterActivityInstance();
   }
 
   public ExecutionEntity getExecution() {
@@ -94,6 +109,24 @@ public class ScopeActivityInstance extends ActivityInstance {
     return instance;
   }
 
+  public ActivityInstance newActivityInstance(ExecutionEntity execution, ActivityImpl activity)
+  {
+
+    final ActivityInstance instance;
+    if (activity.isScope())
+    {
+      instance = new ScopeActivityInstance(this, execution, activity);
+    }
+    else
+    {
+      instance = new NonScopeActivityInstance(this, execution, activity);
+    }
+
+    children.add(instance);
+    return instance;
+
+  }
+
   public void remove()
   {
     if (parent != null)
@@ -101,6 +134,7 @@ public class ScopeActivityInstance extends ActivityInstance {
       parent.removeChild(this);
     }
 
+    this.execution.leaveActivityInstance();
     this.execution.setActivity(null);
     this.execution.destroy();
     this.execution.remove();

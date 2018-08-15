@@ -16,26 +16,21 @@ package org.camunda.bpm.engine.impl.hackdays;
  * @author Thorben Lindhauer
  *
  */
-public class ExecuteActivityWorker implements ActivityInstanceWorker {
+public class LeaveActivityWorker implements ActivityInstanceWorker {
 
   @Override
   public ActivityInstanceState getHandledState() {
-    return ActivityInstanceState.ACTIVATED;
+    return ActivityInstanceState.COMPLETING;
   }
 
   @Override
   public void handle(ActivityInstance activityInstance, EventLoop eventLoop) {
+    activityInstance.invokeLeaveBehavior();
+    activityInstance.setState(ActivityInstanceState.COMPLETED);
 
-    // 1. call activity behavior
-    activityInstance.invokeExecuteBehavior();
+    eventLoop.submit(activityInstance);
 
-    // 2. inspect state
-    // 2.1. if state == COMPLETED
-    //           => destroy activity instance, submit new transition instance with AFTER_ACTIVITY
-    if (activityInstance.getState() == ActivityInstanceState.COMPLETING)
-    {
-      eventLoop.submit(activityInstance);
-    }
+    // TODO: can also do listener invocations and io mappings here
   }
 
 }

@@ -27,12 +27,24 @@ public class NonScopeActivityInstance extends ActivityInstance {
     super(parent, activity);
     this.execution = attachableExecution;
     this.execution.setActivity(activity);
+    this.execution.enterActivityInstance();
+  }
+
+  /**
+   * constructor for deserialization
+   */
+  public NonScopeActivityInstance(ScopeActivityInstance parent, ExecutionEntity execution, ActivityImpl activity)
+  {
+    super(parent, activity);
+    this.execution = execution;
   }
 
   @Override
   public void remove() {
     // do nothing for the time being;
     // TODO should probably reset activity id, activityinstance id and other stuff
+    this.execution.leaveActivityInstance();
+    this.execution.setActivity(activity.getParentFlowScopeActivity());
 
   }
 

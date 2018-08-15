@@ -30,4 +30,10 @@ public interface ActivityBehavior extends CoreActivityBehavior<ActivityExecution
     execute(activityInstance.getExecution());
   };
 
+  @Override
+  default public void leave(ActivityInstance activityInstance)
+  {
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+
 }

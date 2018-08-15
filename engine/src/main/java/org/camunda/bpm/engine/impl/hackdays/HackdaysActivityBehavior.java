@@ -19,4 +19,6 @@ package org.camunda.bpm.engine.impl.hackdays;
 public interface HackdaysActivityBehavior {
 
   void execute(ActivityInstance activityInstance) throws Exception;
+
+  void leave(ActivityInstance activityInstance);
 }

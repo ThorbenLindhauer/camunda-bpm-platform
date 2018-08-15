@@ -19,5 +19,6 @@ package org.camunda.bpm.engine.impl.hackdays;
 public enum ActivityInstanceState {
 
   ACTIVATED,
+  COMPLETING,
   COMPLETED
 }
