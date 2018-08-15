@@ -18,7 +18,7 @@ import org.camunda.bpm.engine.impl.ProcessInstantiationBuilderImpl;
 import org.camunda.bpm.engine.impl.cfg.CommandChecker;
 import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
 import org.camunda.bpm.engine.impl.hackdays.EventLoop;
-import org.camunda.bpm.engine.impl.hackdays.TransitionInstance;
+import org.camunda.bpm.engine.impl.hackdays.IncomingTransitionInstance;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
@@ -55,8 +55,7 @@ public class StartProcessInstanceCmd implements Command<ProcessInstanceWithVaria
     ActivityInstance processInstance = new ActivityInstance(processDefinition);
     ActivityImpl startEvent = processDefinition.getInitial();
 
-    TransitionInstance transitionInstance  = new TransitionInstance(startEvent);
-    processInstance.addTransitionInstance(transitionInstance);
+    IncomingTransitionInstance transitionInstance  = processInstance.newIncomingTransitionInstance(startEvent);
 
     EventLoop eventLoop = new EventLoop();
 

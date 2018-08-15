@@ -16,22 +16,7 @@ package org.camunda.bpm.engine.impl.hackdays;
  * @author Thorben Lindhauer
  *
  */
-public class StartActivityWorker implements TransitionInstanceWorker {
+public interface ElementInstance {
 
-  @Override
-  public TransitionInstanceState getHandledState() {
-    return TransitionInstanceState.BEFORE_ACTIVITY;
-  }
-
-  @Override
-  public void handle(TransitionInstance transitionInstance, EventLoop eventLoop) {
-    // 1. destroy transition instance
-    // 2. create activity instance
-    // 3. signal event loop
-
-
-  }
-
-
-
+  ActivityInstance getParent();
 }

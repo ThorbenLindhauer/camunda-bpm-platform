@@ -25,12 +25,17 @@ public class ExecuteActivityWorker implements ActivityInstanceWorker {
 
   @Override
   public void handle(ActivityInstance activityInstance, EventLoop eventLoop) {
+
     // 1. call activity behavior
+    activityInstance.invokeBehavior();
 
     // 2. inspect state
     // 2.1. if state == COMPLETED
     //           => destroy activity instance, submit new transition instance with AFTER_ACTIVITY
-
+    if (activityInstance.getState() == ActivityInstanceState.COMPLETED)
+    {
+      eventLoop.submit(activityInstance);
+    }
   }
 
 }

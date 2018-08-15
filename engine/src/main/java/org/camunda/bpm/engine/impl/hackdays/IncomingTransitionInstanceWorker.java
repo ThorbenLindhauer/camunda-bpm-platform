@@ -12,24 +12,26 @@
  */
 package org.camunda.bpm.engine.impl.hackdays;
 
-import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-public class TransitionInstance {
+public class IncomingTransitionInstanceWorker {
 
-  private TransitionInstanceState state;
-  private ExecutionEntity execution;
+  public void handle(IncomingTransitionInstance transitionInstance, EventLoop eventLoop) {
 
-  public TransitionInstance(ActivityImpl activity)
-  {
+    ActivityInstance scopeInstance = transitionInstance.getParent();
+    ActivityImpl activity = transitionInstance.getActivity();
 
-  }
+    // 1. destroy transition instance
+    transitionInstance.remove();
 
-  public TransitionInstanceState getState() {
-    return state;
+    // 2. create activity instance
+    ActivityInstance activityInstance = scopeInstance.newActivityInstance(activity);
+
+    // 3. signal event loop
+    eventLoop.submit(activityInstance);
   }
 }

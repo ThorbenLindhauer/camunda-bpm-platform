@@ -12,10 +12,21 @@
  */
 package org.camunda.bpm.engine.impl.bpmn.behavior;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.camunda.bpm.engine.impl.Condition;
 import org.camunda.bpm.engine.impl.ProcessEngineLogger;
+import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParse;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.camunda.bpm.engine.impl.pvm.PvmTransition;
+import org.camunda.bpm.engine.impl.pvm.delegate.ActivityBehavior;
 import org.camunda.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.camunda.bpm.engine.impl.pvm.delegate.SignallableActivityBehavior;
+import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
+import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
 import org.camunda.bpm.engine.impl.pvm.runtime.operation.PvmAtomicOperation;
 
 
@@ -38,6 +49,46 @@ public abstract class FlowNodeActivityBehavior implements SignallableActivityBeh
    */
   public void execute(ActivityExecution execution) throws Exception {
     leave(execution);
+  }
+
+  @Override
+  public void execute(ActivityInstance activityInstance) throws Exception {
+    leave(activityInstance);
+  }
+
+  public void leave(ActivityInstance activityInstance)
+  {
+    ExecutionEntity execution = activityInstance.getExecution();
+
+    LOG.leavingActivity(execution.getActivity().getId());
+
+    String defaultSequenceFlow = (String) execution.getActivity().getProperty("default");
+
+    List<PvmTransition> outgoingTransitions = execution.getActivity().getOutgoingTransitions();
+    boolean anyMatched = false;
+    for (PvmTransition outgoingTransition : outgoingTransitions) {
+      if (defaultSequenceFlow == null || !outgoingTransition.getId().equals(defaultSequenceFlow)) {
+        Condition condition = (Condition) outgoingTransition.getProperty(BpmnParse.PROPERTYNAME_CONDITION);
+        if (condition == null || condition.evaluate(execution)) {
+          activityInstance.takeTransition((TransitionImpl) outgoingTransition);
+          anyMatched = true;
+        }
+      }
+    }
+
+    if (!anyMatched)
+    {
+      if (defaultSequenceFlow != null) {
+        PvmTransition defaultTransition = execution.getActivity().findOutgoingTransition(defaultSequenceFlow);
+        if (defaultTransition != null) {
+          activityInstance.takeTransition((TransitionImpl) defaultTransition);
+        } else {
+          throw LOG.missingDefaultFlowException(execution.getActivity().getId(), defaultSequenceFlow);
+        }
+      } else {
+        throw LOG.missingConditionalFlowException(execution.getActivity().getId());
+      }
+    }
   }
 
   /**

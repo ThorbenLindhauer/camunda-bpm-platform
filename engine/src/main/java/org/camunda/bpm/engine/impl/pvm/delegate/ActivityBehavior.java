@@ -13,12 +13,20 @@
 package org.camunda.bpm.engine.impl.pvm.delegate;
 
 import org.camunda.bpm.engine.impl.core.delegate.CoreActivityBehavior;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
+import org.camunda.bpm.engine.impl.hackdays.HackdaysActivityBehavior;
 
 
 /**
  * @author Tom Baeyens
  */
-public interface ActivityBehavior extends CoreActivityBehavior<ActivityExecution> {
+public interface ActivityBehavior extends CoreActivityBehavior<ActivityExecution>, HackdaysActivityBehavior {
 
   void execute(ActivityExecution execution) throws Exception;
+
+  @Override
+  default public void execute(ActivityInstance activityInstance) throws Exception {
+    execute(activityInstance.getExecution());
+  };
+
 }

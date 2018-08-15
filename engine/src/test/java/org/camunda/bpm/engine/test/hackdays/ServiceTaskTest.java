@@ -47,4 +47,13 @@ public class ServiceTaskTest {
     assertThat(runtimeService.createExecutionQuery().count()).isEqualTo(0);
   }
 
+  /*
+   * Findings:
+   *
+   * - situation bei async after:
+   *   - es gibt einen Job pro ausgehendem Sequenzfluß
+   *   - execution steht noch auf der letzten Aktivität
+   *   - transition id ist in die Job-Konfiguration kodiert
+   */
+
 }

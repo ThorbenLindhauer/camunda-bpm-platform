@@ -12,6 +12,11 @@
  */
 package org.camunda.bpm.engine.impl.hackdays;
 
+import java.util.List;
+
+import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
+import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
+
 /**
  * @author Thorben Lindhauer
  *
@@ -25,9 +30,18 @@ public class AdvanceActivityHandler implements ActivityInstanceWorker {
 
   @Override
   public void handle(ActivityInstance activityInstance, EventLoop eventLoop) {
+    ActivityInstance scopeInstance = activityInstance.getParent();
+
     // 1. get outgoing sequence flows from activity instance
+    List<TransitionImpl> transitionsToTake = activityInstance.getTransitionsToTake();
+    activityInstance.remove();
+
     // 2. create one transition instance per sequence flow
-    // 3. submit to event loop
+    transitionsToTake.forEach(t -> {
+      IncomingTransitionInstance transitionInstance = scopeInstance.newIncomingTransitionInstance((ActivityImpl) t.getDestination());
+      // 3. submit to event loop
+      eventLoop.submit(transitionInstance);
+    });
   }
 
 }

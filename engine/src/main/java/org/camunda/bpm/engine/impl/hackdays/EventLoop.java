@@ -23,12 +23,17 @@ import java.util.Map;
  */
 public class EventLoop {
 
-  private Map<ActivityInstanceState, ActivityInstanceWorker> activityInstanceWorkers = new HashMap<>();
-  private Map<TransitionInstanceState, TransitionInstanceWorker> transitionInstanceWorkers = new HashMap<>();
+  private final Map<ActivityInstanceState, ActivityInstanceWorker> activityInstanceWorkers = new HashMap<>();
+  private final IncomingTransitionInstanceWorker incomingTransitionInstanceWorker = new IncomingTransitionInstanceWorker();
+  private final OutgoingTransitionInstanceWorker outgoingTransitionInstanceWorker = new OutgoingTransitionInstanceWorker();
 
-  private Deque<Object> stuffToWorkOn = new LinkedList<>();
+  private final Deque<Object> stuffToWorkOn = new LinkedList<>();
 
-
+  public EventLoop()
+  {
+    activityInstanceWorkers.put(ActivityInstanceState.ACTIVATED, new ExecuteActivityWorker());
+    activityInstanceWorkers.put(ActivityInstanceState.COMPLETED, new AdvanceActivityHandler());
+  }
 
   public void submit(ActivityInstance activityInstance)
   {
@@ -36,7 +41,7 @@ public class EventLoop {
   }
 
 
-  public void submit(TransitionInstance transitionInstance)
+  public void submit(IncomingTransitionInstance transitionInstance)
   {
     stuffToWorkOn.addFirst(transitionInstance);
   }
@@ -53,11 +58,15 @@ public class EventLoop {
         ActivityInstanceWorker worker = activityInstanceWorkers.get(activityInstance.getState());
         worker.handle(activityInstance, this);
       }
+      else if (nextElement instanceof IncomingTransitionInstance)
+      {
+        IncomingTransitionInstance transitionInstance = (IncomingTransitionInstance) nextElement;
+        incomingTransitionInstanceWorker.handle(transitionInstance, this);
+      }
       else
       {
-        TransitionInstance transitionInstance = (TransitionInstance) nextElement;
-        TransitionInstanceWorker worker = transitionInstanceWorkers.get(transitionInstance.getState());
-        worker.handle(transitionInstance, this);
+        OutgoingTransitionInstance transitionInstance = (OutgoingTransitionInstance) nextElement;
+        outgoingTransitionInstanceWorker.handle(transitionInstance, this);
       }
     }
   }

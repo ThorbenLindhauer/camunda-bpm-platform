@@ -305,7 +305,7 @@ public class ExecutionEntity extends PvmExecutionImpl implements Execution, Proc
     return subProcessInstance;
   }
 
-  protected static ExecutionEntity createNewExecution() {
+  public static ExecutionEntity createNewExecution() {
     ExecutionEntity newExecution = new ExecutionEntity();
     initializeAssociations(newExecution);
     newExecution.insert();

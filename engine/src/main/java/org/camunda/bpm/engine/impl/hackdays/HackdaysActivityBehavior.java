@@ -16,19 +16,7 @@ package org.camunda.bpm.engine.impl.hackdays;
  * @author Thorben Lindhauer
  *
  */
-public class TakeSequenceFlowWorker implements TransitionInstanceWorker {
+public interface HackdaysActivityBehavior {
 
-  @Override
-  public TransitionInstanceState getHandledState() {
-    return TransitionInstanceState.AFTER_ACTIVITY;
-  }
-
-  @Override
-  public void handle(TransitionInstance transitionInstance, EventLoop eventLoop) {
-    // 1. find target activity
-    // 2. destroy transition instance
-    // 3. create transition instance BEFORE_ACTIVITY and submit to event loop
-
-  }
-
+  void execute(ActivityInstance activityInstance) throws Exception;
 }
