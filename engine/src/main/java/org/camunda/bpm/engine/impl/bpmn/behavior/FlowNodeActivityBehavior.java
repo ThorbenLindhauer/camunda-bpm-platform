@@ -12,8 +12,6 @@
  */
 package org.camunda.bpm.engine.impl.bpmn.behavior;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.camunda.bpm.engine.impl.Condition;
@@ -23,10 +21,8 @@ import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
 import org.camunda.bpm.engine.impl.hackdays.ActivityInstanceState;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.pvm.PvmTransition;
-import org.camunda.bpm.engine.impl.pvm.delegate.ActivityBehavior;
 import org.camunda.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.camunda.bpm.engine.impl.pvm.delegate.SignallableActivityBehavior;
-import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
 import org.camunda.bpm.engine.impl.pvm.runtime.operation.PvmAtomicOperation;
 

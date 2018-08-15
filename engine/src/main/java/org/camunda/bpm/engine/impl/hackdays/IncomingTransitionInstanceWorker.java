@@ -22,7 +22,7 @@ public class IncomingTransitionInstanceWorker {
 
   public void handle(IncomingTransitionInstance transitionInstance, EventLoop eventLoop) {
 
-    ActivityInstance scopeInstance = transitionInstance.getParent();
+    ScopeActivityInstance scopeInstance = transitionInstance.getParent();
     ActivityImpl activity = transitionInstance.getActivity();
 
     // 1. destroy transition instance

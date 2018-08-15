@@ -24,7 +24,7 @@ public class OutgoingTransitionInstanceWorker {
 
   public void handle(OutgoingTransitionInstance transitionInstance, EventLoop eventLoop) {
     TransitionImpl transition = transitionInstance.getTransition();
-    ActivityInstance scopeInstance = transitionInstance.getParent();
+    ScopeActivityInstance scopeInstance = transitionInstance.getParent();
 
     if (transition != null)
     {

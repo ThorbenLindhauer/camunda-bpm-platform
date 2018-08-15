@@ -13,6 +13,7 @@
 package org.camunda.bpm.engine.impl.pvm.delegate;
 
 import org.camunda.bpm.engine.impl.core.delegate.CoreActivityBehavior;
+import org.camunda.bpm.engine.impl.hackdays.ScopeActivityInstance;
 import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
 import org.camunda.bpm.engine.impl.hackdays.HackdaysActivityBehavior;
 

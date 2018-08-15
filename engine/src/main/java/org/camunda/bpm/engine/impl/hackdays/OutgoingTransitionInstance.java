@@ -23,13 +23,13 @@ import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
 public class OutgoingTransitionInstance implements ElementInstance {
 
 
-  private final ActivityInstance parent;
+  private final ScopeActivityInstance parent;
   private final ActivityImpl activity;
   private final TransitionImpl transition;
 
   private final ExecutionEntity execution;
 
-  public OutgoingTransitionInstance(ActivityInstance parent, ActivityImpl activity, TransitionImpl transition)
+  public OutgoingTransitionInstance(ScopeActivityInstance parent, ActivityImpl activity, TransitionImpl transition)
   {
     this.parent = parent;
     this.activity = activity;
@@ -48,7 +48,7 @@ public class OutgoingTransitionInstance implements ElementInstance {
     this.execution.setActivity(null);
   }
 
-  public ActivityInstance getParent() {
+  public ScopeActivityInstance getParent() {
     return parent;
   }
 

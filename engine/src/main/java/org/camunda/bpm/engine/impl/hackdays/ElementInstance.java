@@ -20,7 +20,7 @@ import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
  */
 public interface ElementInstance {
 
-  ActivityInstance getParent();
+  ScopeActivityInstance getParent();
 
   ActivityImpl getActivity();
 }

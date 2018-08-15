@@ -19,41 +19,31 @@ import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
  * @author Thorben Lindhauer
  *
  */
-public class IncomingTransitionInstance implements ElementInstance {
+public class NonScopeActivityInstance extends ActivityInstance {
 
-  private final ScopeActivityInstance parent;
-  private final ActivityImpl activity;
+  private ExecutionEntity execution;
 
-  private final ExecutionEntity execution;
-
-  public IncomingTransitionInstance(ScopeActivityInstance parent, ActivityImpl activity)
-  {
-    this.parent = parent;
-    this.activity = activity;
-    this.execution = parent.getExecution();
+  public NonScopeActivityInstance(ScopeActivityInstance parent, ActivityImpl activity, ExecutionEntity attachableExecution) {
+    super(parent, activity);
+    this.execution = attachableExecution;
     this.execution.setActivity(activity);
   }
 
-  public ActivityImpl getActivity() {
-    return activity;
-  }
+  @Override
+  public void remove() {
+    // do nothing for the time being;
+    // TODO should probably reset activity id, activityinstance id and other stuff
 
-  public void remove()
-  {
-    parent.removeChild(this);
-    this.execution.setActivity(null);
-  }
-
-  public ScopeActivityInstance getParent() {
-    return parent;
   }
 
   @Override
-  public String toString() {
-
-    StringBuilder sb = new StringBuilder();
-    sb.append("incoming transition instance at activity ");
-    sb.append(activity.getId());
-    return sb.toString();
+  public ActivityInstance newActivityInstance(ActivityImpl activity) {
+    throw new UnsupportedOperationException("a non-scope activity instance cannot have children");
   }
+
+  @Override
+  public ExecutionEntity getExecution() {
+    return execution;
+  }
+
 }

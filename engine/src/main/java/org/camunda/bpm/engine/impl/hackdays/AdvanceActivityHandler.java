@@ -29,13 +29,14 @@ public class AdvanceActivityHandler implements ActivityInstanceWorker {
 
   @Override
   public void handle(ActivityInstance activityInstance, EventLoop eventLoop) {
-    ActivityInstance scopeInstance = activityInstance.getParent();
+    ScopeActivityInstance scopeInstance = activityInstance.getParent();
 
     // 1. get outgoing sequence flows from activity instance
     List<TransitionImpl> transitionsToTake = activityInstance.getTransitionsToTake();
     activityInstance.remove();
 
     // 2. create one transition instance per sequence flow
+    // TODO: nicht so toll ist hier die if-else-Konstruktion; vll ist das ins Behavior des jeweiligen Scopes/Aktivität kodierbar?
     if (!transitionsToTake.isEmpty())
     {
       transitionsToTake.forEach(t -> {
@@ -54,9 +55,7 @@ public class AdvanceActivityHandler implements ActivityInstanceWorker {
       else
       {
         // process instance
-        activityInstance.remove();
-        // TODO: must delete the execution here; this should go into activity instance
-        // (but we must differentiate the cases of scope vs no-scope)
+        // do nothing else for the time being
       }
     }
   }

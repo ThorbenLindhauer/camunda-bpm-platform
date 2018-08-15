@@ -18,42 +18,25 @@ import java.util.List;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.pvm.PvmException;
 import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
-import org.camunda.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
 import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-public class ActivityInstance implements ElementInstance {
+public abstract class ActivityInstance implements ElementInstance {
 
-  private final ActivityInstance parent;
-  private final ActivityImpl activity;
-
-  private final ExecutionEntity execution;
-  private List<ElementInstance> children = new ArrayList<>();
+  protected final ScopeActivityInstance parent;
+  protected final ActivityImpl activity;
   private ActivityInstanceState state = ActivityInstanceState.ACTIVATED;
-
   private List<TransitionImpl> transitionsToTake = new ArrayList<>();
 
-  public ActivityInstance(ProcessDefinitionImpl processDefinition) {
-    this.execution = ExecutionEntity.createNewExecution();
-    this.execution.setProcessInstance(execution);
-    this.parent = null;
-    this.activity = null;
-  }
-
-  public ActivityInstance(ActivityInstance parent, ActivityImpl activity)
+  public ActivityInstance(ScopeActivityInstance parent, ActivityImpl activity)
   {
     this.parent = parent;
     this.activity = activity;
-    this.execution = parent.execution;
-    this.execution.setActivity(activity);
   }
 
-  public ExecutionEntity getExecution() {
-    return execution;
-  }
 
   public ActivityInstanceState getState() {
     return state;
@@ -61,32 +44,6 @@ public class ActivityInstance implements ElementInstance {
 
   public void setState(ActivityInstanceState state) {
     this.state = state;
-  }
-
-  public IncomingTransitionInstance newIncomingTransitionInstance(ActivityImpl activity)
-  {
-    IncomingTransitionInstance instance = new IncomingTransitionInstance(this, activity);
-    children.add(instance);
-    return instance;
-  }
-
-  public OutgoingTransitionInstance newOutgoingTransitionInstance(ActivityImpl activity, TransitionImpl transition)
-  {
-    OutgoingTransitionInstance instance = new OutgoingTransitionInstance(this, activity, transition);
-    children.add(instance);
-    return instance;
-  }
-
-  public ActivityInstance newActivityInstance(ActivityImpl activity)
-  {
-    ActivityInstance instance = new ActivityInstance(this, activity);
-    children.add(instance);
-    return instance;
-  }
-
-  public void removeChild(ElementInstance elementInstance)
-  {
-    this.children.remove(elementInstance);
   }
 
   public ActivityImpl getActivity() {
@@ -103,7 +60,7 @@ public class ActivityInstance implements ElementInstance {
     }
   }
 
-  public ActivityInstance getParent() {
+  public ScopeActivityInstance getParent() {
     return parent;
   }
 
@@ -116,23 +73,10 @@ public class ActivityInstance implements ElementInstance {
     transitionsToTake.add(transition);
   }
 
-  public void remove()
-  {
-    if (parent != null)
-    {
-      parent.removeChild(this);
-    }
+  public abstract void remove();
 
-    this.execution.setActivity(null);
-  }
+  public abstract ActivityInstance newActivityInstance(ActivityImpl activity);
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("activity instance at activity ");
-    sb.append(activity != null ? activity.getId() : "<process definition>");
-    sb.append(" in state ");
-    sb.append(state);
-    return sb.toString();
-  }
+  public abstract ExecutionEntity getExecution();
+
 }
