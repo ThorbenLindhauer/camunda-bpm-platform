@@ -20,6 +20,7 @@ import org.camunda.bpm.engine.impl.Condition;
 import org.camunda.bpm.engine.impl.ProcessEngineLogger;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstanceState;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.pvm.PvmTransition;
 import org.camunda.bpm.engine.impl.pvm.delegate.ActivityBehavior;
@@ -85,10 +86,10 @@ public abstract class FlowNodeActivityBehavior implements SignallableActivityBeh
         } else {
           throw LOG.missingDefaultFlowException(execution.getActivity().getId(), defaultSequenceFlow);
         }
-      } else {
-        throw LOG.missingConditionalFlowException(execution.getActivity().getId());
       }
     }
+
+    activityInstance.setState(ActivityInstanceState.COMPLETED);
   }
 
   /**

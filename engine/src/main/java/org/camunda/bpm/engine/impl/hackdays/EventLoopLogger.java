@@ -12,15 +12,21 @@
  */
 package org.camunda.bpm.engine.impl.hackdays;
 
-import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
+import org.camunda.bpm.engine.impl.ProcessEngineLogger;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-public interface ElementInstance {
+public class EventLoopLogger extends ProcessEngineLogger {
 
-  ActivityInstance getParent();
+  public void logElementSubmitted(ElementInstance elementInstance)
+  {
+    logDebug("0", "Submitted instance {}", elementInstance);
+  }
 
-  ActivityImpl getActivity();
+  public void logElementExecuting(ElementInstance elementInstance)
+  {
+    logDebug("0", "Executing instance {}", elementInstance);
+  }
 }

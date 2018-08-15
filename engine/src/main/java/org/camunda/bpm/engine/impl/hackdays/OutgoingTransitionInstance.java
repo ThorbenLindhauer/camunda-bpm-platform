@@ -55,4 +55,13 @@ public class OutgoingTransitionInstance implements ElementInstance {
   public TransitionImpl getTransition() {
     return transition;
   }
+
+  @Override
+  public String toString() {
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("outgoing transition instance at activity ");
+    sb.append(activity.getId());
+    return sb.toString();
+  }
 }

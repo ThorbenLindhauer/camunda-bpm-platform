@@ -26,15 +26,24 @@ public class OutgoingTransitionInstanceWorker {
     TransitionImpl transition = transitionInstance.getTransition();
     ActivityInstance scopeInstance = transitionInstance.getParent();
 
-    // 1. find target activity
-    PvmActivity destination = transition.getDestination();
+    if (transition != null)
+    {
+      // 1. find target activity
+      PvmActivity destination = transition.getDestination();
 
-    // 2. destroy transition instance
-    transitionInstance.remove();
+      // 2. destroy transition instance
+      transitionInstance.remove();
 
-    // 3. create transition instance BEFORE_ACTIVITY and submit to event loop
-    IncomingTransitionInstance incomingInstance = new IncomingTransitionInstance(scopeInstance, (ActivityImpl) destination);
-    eventLoop.submit(incomingInstance);
+      // 3. create transition instance BEFORE_ACTIVITY and submit to event loop
+      IncomingTransitionInstance incomingInstance = new IncomingTransitionInstance(scopeInstance, (ActivityImpl) destination);
+      eventLoop.submit(incomingInstance);
+    }
+    else
+    {
+      transitionInstance.remove();
+
+      scopeInstance.setState(ActivityInstanceState.COMPLETED);
+      eventLoop.submit(scopeInstance);
+    }
   }
-
 }

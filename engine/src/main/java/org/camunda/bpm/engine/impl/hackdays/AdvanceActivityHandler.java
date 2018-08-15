@@ -14,7 +14,6 @@ package org.camunda.bpm.engine.impl.hackdays;
 
 import java.util.List;
 
-import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
 
 /**
@@ -37,11 +36,29 @@ public class AdvanceActivityHandler implements ActivityInstanceWorker {
     activityInstance.remove();
 
     // 2. create one transition instance per sequence flow
-    transitionsToTake.forEach(t -> {
-      IncomingTransitionInstance transitionInstance = scopeInstance.newIncomingTransitionInstance((ActivityImpl) t.getDestination());
-      // 3. submit to event loop
-      eventLoop.submit(transitionInstance);
-    });
+    if (!transitionsToTake.isEmpty())
+    {
+      transitionsToTake.forEach(t -> {
+        OutgoingTransitionInstance transitionInstance = scopeInstance.newOutgoingTransitionInstance(activityInstance.getActivity(), t);
+        // 3. submit to event loop
+        eventLoop.submit(transitionInstance);
+      });
+    }
+    else
+    {
+      if (scopeInstance != null)
+      {
+        OutgoingTransitionInstance transitionInstance = scopeInstance.newOutgoingTransitionInstance(activityInstance.getActivity(), null);
+        eventLoop.submit(transitionInstance);
+      }
+      else
+      {
+        // process instance
+        activityInstance.remove();
+        // TODO: must delete the execution here; this should go into activity instance
+        // (but we must differentiate the cases of scope vs no-scope)
+      }
+    }
   }
 
 }

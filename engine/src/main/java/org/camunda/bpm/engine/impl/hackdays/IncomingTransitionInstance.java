@@ -47,4 +47,13 @@ public class IncomingTransitionInstance implements ElementInstance {
   public ActivityInstance getParent() {
     return parent;
   }
+
+  @Override
+  public String toString() {
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("incoming transition instance at activity ");
+    sb.append(activity.getId());
+    return sb.toString();
+  }
 }

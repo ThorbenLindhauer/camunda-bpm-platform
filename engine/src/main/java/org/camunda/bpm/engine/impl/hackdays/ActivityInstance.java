@@ -38,6 +38,7 @@ public class ActivityInstance implements ElementInstance {
 
   public ActivityInstance(ProcessDefinitionImpl processDefinition) {
     this.execution = ExecutionEntity.createNewExecution();
+    this.execution.setProcessInstance(execution);
     this.parent = null;
     this.activity = null;
   }
@@ -123,5 +124,15 @@ public class ActivityInstance implements ElementInstance {
     }
 
     this.execution.setActivity(null);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("activity instance at activity ");
+    sb.append(activity != null ? activity.getId() : "<process definition>");
+    sb.append(" in state ");
+    sb.append(state);
+    return sb.toString();
   }
 }

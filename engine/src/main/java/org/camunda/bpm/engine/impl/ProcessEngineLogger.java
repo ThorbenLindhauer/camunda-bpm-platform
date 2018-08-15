@@ -29,6 +29,7 @@ import org.camunda.bpm.engine.impl.db.EnginePersistenceLogger;
 import org.camunda.bpm.engine.impl.digest.SecurityLogger;
 import org.camunda.bpm.engine.impl.dmn.DecisionLogger;
 import org.camunda.bpm.engine.impl.externaltask.ExternalTaskLogger;
+import org.camunda.bpm.engine.impl.hackdays.EventLoopLogger;
 import org.camunda.bpm.engine.impl.incident.IncidentLogger;
 import org.camunda.bpm.engine.impl.interceptor.ContextLogger;
 import org.camunda.bpm.engine.impl.jobexecutor.JobExecutorLogger;
@@ -47,6 +48,9 @@ import org.camunda.commons.logging.BaseLogger;
 public class ProcessEngineLogger extends BaseLogger {
 
   public static final String PROJECT_CODE = "ENGINE";
+
+  public static final EventLoopLogger EVENT_LOOP_LOGGER = BaseLogger.createLogger(
+      EventLoopLogger.class, PROJECT_CODE, "hackdays.event-loop", "99");
 
   public static final ProcessEngineLogger INSTANCE = BaseLogger.createLogger(
       ProcessEngineLogger.class, PROJECT_CODE, "org.camunda.bpm.engine", "00");
