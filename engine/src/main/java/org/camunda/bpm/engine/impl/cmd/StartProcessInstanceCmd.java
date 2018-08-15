@@ -16,12 +16,16 @@ import java.io.Serializable;
 
 import org.camunda.bpm.engine.impl.ProcessInstantiationBuilderImpl;
 import org.camunda.bpm.engine.impl.cfg.CommandChecker;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
+import org.camunda.bpm.engine.impl.hackdays.EventLoop;
+import org.camunda.bpm.engine.impl.hackdays.TransitionInstance;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionVariableSnapshotObserver;
 import org.camunda.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.ProcessInstanceWithVariablesImpl;
+import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.camunda.bpm.engine.runtime.ProcessInstanceWithVariables;
 
 /**
@@ -47,17 +51,32 @@ public class StartProcessInstanceCmd implements Command<ProcessInstanceWithVaria
     }
 
     // Start the process instance
-    ExecutionEntity processInstance = processDefinition.createProcessInstance(instantiationBuilder.getBusinessKey(),
-        instantiationBuilder.getCaseInstanceId());
 
-    if (instantiationBuilder.getTenantId() != null) {
-      processInstance.setTenantId(instantiationBuilder.getTenantId());
-    }
+    ActivityInstance processInstance = new ActivityInstance(processDefinition);
+    ActivityImpl startEvent = processDefinition.getInitial();
 
-    final ExecutionVariableSnapshotObserver variablesListener = new ExecutionVariableSnapshotObserver(processInstance);
+    TransitionInstance transitionInstance  = new TransitionInstance(startEvent);
+    processInstance.addTransitionInstance(transitionInstance);
 
-    processInstance.start(instantiationBuilder.getVariables());
-    return new ProcessInstanceWithVariablesImpl(processInstance, variablesListener.getVariables());
+    EventLoop eventLoop = new EventLoop();
+
+    eventLoop.submit(transitionInstance);
+    eventLoop.doWork();
+
+    return new ProcessInstanceWithVariablesImpl(processInstance.getExecution(), processInstance.getExecution().getVariables());
+
+
+//    ExecutionEntity processInstance = processDefinition.createProcessInstance(instantiationBuilder.getBusinessKey(),
+//        instantiationBuilder.getCaseInstanceId());
+//
+//    if (instantiationBuilder.getTenantId() != null) {
+//      processInstance.setTenantId(instantiationBuilder.getTenantId());
+//    }
+//
+//    final ExecutionVariableSnapshotObserver variablesListener = new ExecutionVariableSnapshotObserver(processInstance);
+//
+//    processInstance.start(instantiationBuilder.getVariables());
+//    return new ProcessInstanceWithVariablesImpl(processInstance, variablesListener.getVariables());
   }
 
 }
