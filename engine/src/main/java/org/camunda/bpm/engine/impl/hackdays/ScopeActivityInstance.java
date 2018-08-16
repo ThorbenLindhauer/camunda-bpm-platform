@@ -68,7 +68,21 @@ public class ScopeActivityInstance extends ActivityInstance {
     return instance;
   }
 
+  public IncomingTransitionInstance newIncomingTransitionInstance(ExecutionEntity execution, ActivityImpl activity)
+  {
+    IncomingTransitionInstance instance = new IncomingTransitionInstance(this, execution, activity);
+    children.add(instance);
+    return instance;
+  }
+
   public OutgoingTransitionInstance newOutgoingTransitionInstance(ActivityImpl activity, TransitionImpl transition)
+  {
+    OutgoingTransitionInstance instance = new OutgoingTransitionInstance(this, activity, transition);
+    children.add(instance);
+    return instance;
+  }
+
+  public OutgoingTransitionInstance newOutgoingTransitionInstance(ActivityImpl activity, ExecutionEntity execution, TransitionImpl transition)
   {
     OutgoingTransitionInstance instance = new OutgoingTransitionInstance(this, activity, transition);
     children.add(instance);

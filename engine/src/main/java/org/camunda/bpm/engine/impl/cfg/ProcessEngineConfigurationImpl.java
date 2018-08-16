@@ -171,6 +171,8 @@ import org.camunda.bpm.engine.impl.form.validator.MinLengthValidator;
 import org.camunda.bpm.engine.impl.form.validator.MinValidator;
 import org.camunda.bpm.engine.impl.form.validator.ReadOnlyValidator;
 import org.camunda.bpm.engine.impl.form.validator.RequiredValidator;
+import org.camunda.bpm.engine.impl.hackdays.IncomingTransitionJobHandler;
+import org.camunda.bpm.engine.impl.hackdays.OutgoingTransitionJobHandler;
 import org.camunda.bpm.engine.impl.history.HistoryLevel;
 import org.camunda.bpm.engine.impl.history.event.HistoricDecisionInstanceManager;
 import org.camunda.bpm.engine.impl.history.handler.DbHistoryEventHandler;
@@ -1797,6 +1799,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
     HistoryCleanupJobHandler historyCleanupJobHandler = new HistoryCleanupJobHandler();
     jobHandlers.put(historyCleanupJobHandler.getType(), historyCleanupJobHandler);
+
+    IncomingTransitionJobHandler incomingJobHandler = new IncomingTransitionJobHandler();
+    jobHandlers.put(incomingJobHandler.getType(), incomingJobHandler);
+
+    OutgoingTransitionJobHandler outgoingJobHandler = new OutgoingTransitionJobHandler();
+    jobHandlers.put(outgoingJobHandler.getType(), outgoingJobHandler);
 
     for (JobHandler batchHandler : batchHandlers.values()) {
       jobHandlers.put(batchHandler.getType(), batchHandler);

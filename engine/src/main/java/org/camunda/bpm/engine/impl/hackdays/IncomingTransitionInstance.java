@@ -12,40 +12,43 @@
  */
 package org.camunda.bpm.engine.impl.hackdays;
 
+import org.camunda.bpm.engine.impl.context.Context;
+import org.camunda.bpm.engine.impl.jobexecutor.JobDeclaration;
+import org.camunda.bpm.engine.impl.jobexecutor.JobHandlerConfiguration;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.camunda.bpm.engine.impl.persistence.entity.JobEntity;
+import org.camunda.bpm.engine.impl.persistence.entity.MessageEntity;
 import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 
 /**
  * @author Thorben Lindhauer
  *
  */
-public class IncomingTransitionInstance implements ElementInstance {
-
-  private final ScopeActivityInstance parent;
-  private final ActivityImpl activity;
-
-  private final ExecutionEntity execution;
+public class IncomingTransitionInstance extends TransitionInstance {
 
   public IncomingTransitionInstance(ScopeActivityInstance parent, ActivityImpl activity)
   {
-    this.parent = parent;
-    this.activity = activity;
-    this.execution = parent.getExecution();
+    super(parent, activity, parent.getExecution());
     this.execution.setActivity(activity);
   }
 
-  public ActivityImpl getActivity() {
-    return activity;
-  }
-
-  public void remove()
+  public IncomingTransitionInstance(ScopeActivityInstance parent, ExecutionEntity execution, ActivityImpl activity)
   {
-    parent.removeChild(this);
-    this.execution.setActivity(null);
+    super(parent, activity, execution);
   }
 
-  public ScopeActivityInstance getParent() {
-    return parent;
+
+  @Override
+  public boolean isAsync() {
+    return activity.isAsyncBefore();
+  }
+
+  @Override
+  public void createJob() {
+    AsyncBeforeJobDeclaration declaration = new AsyncBeforeJobDeclaration();
+    MessageEntity job = declaration.createJobInstance(execution);
+    Context.getCommandContext().getJobManager().send(job);
+    execution.addJob(job);
   }
 
   @Override
@@ -55,5 +58,38 @@ public class IncomingTransitionInstance implements ElementInstance {
     sb.append("incoming transition instance at activity ");
     sb.append(activity.getId());
     return sb.toString();
+  }
+
+  private class AsyncBeforeJobDeclaration extends JobDeclaration<ExecutionEntity, MessageEntity>
+  {
+
+    public AsyncBeforeJobDeclaration() {
+      super("incoming-transition");
+    }
+
+    @Override
+    protected ExecutionEntity resolveExecution(ExecutionEntity context) {
+      return context;
+    }
+
+    @Override
+    protected MessageEntity newJobInstance(ExecutionEntity context) {
+      MessageEntity message = new MessageEntity();
+      message.setExecution(context);
+
+      return message;
+    }
+
+    @Override
+    protected JobHandlerConfiguration resolveJobHandlerConfiguration(ExecutionEntity context) {
+      return new JobHandlerConfiguration() {
+
+        @Override
+        public String toCanonicalString() {
+          return null;
+        }
+      };
+    }
+
   }
 }

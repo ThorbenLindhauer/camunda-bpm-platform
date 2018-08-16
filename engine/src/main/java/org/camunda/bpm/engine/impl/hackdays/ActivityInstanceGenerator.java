@@ -14,11 +14,15 @@ package org.camunda.bpm.engine.impl.hackdays;
 
 import org.camunda.bpm.engine.impl.cmd.GetActivityInstanceCmd;
 import org.camunda.bpm.engine.impl.context.Context;
+import org.camunda.bpm.engine.impl.hackdays.OutgoingTransitionJobHandler.OutgoingTransitionConfiguration;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionManager;
+import org.camunda.bpm.engine.impl.persistence.entity.JobEntity;
+import org.camunda.bpm.engine.impl.persistence.entity.MessageEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
+import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
 
 /**
  * @author Thorben Lindhauer
@@ -28,6 +32,7 @@ public class ActivityInstanceGenerator {
 
   private ExecutionManager executionManager;
   private ActivityInstance targetActivityInstance;
+  private TransitionInstance targetTransitionInstance;
   private ExecutionEntity targetExecution;
 
   public ActivityInstanceGenerator(CommandContext commandContext)
@@ -49,9 +54,62 @@ public class ActivityInstanceGenerator {
     ScopeActivityInstance rootActivityInstance = new ScopeActivityInstance(null, processInstance, activity);
 
     createChildren(rootActivityInstance, processDefinition, activityInstance.getChildActivityInstances());
+    createChildren(rootActivityInstance, processDefinition, activityInstance.getChildTransitionInstances());
 
     return targetActivityInstance;
   }
+
+  public TransitionInstance buildActivityInstanceTreeAndReturnTransition(ExecutionEntity execution)
+  {
+    buildActivityInstanceTree(execution);
+    return targetTransitionInstance;
+  }
+
+  private void createChildren(ScopeActivityInstance scopeInstance, ProcessDefinitionEntity processDefinition,
+      org.camunda.bpm.engine.runtime.TransitionInstance[] children)
+  {
+    for (org.camunda.bpm.engine.runtime.TransitionInstance child : children)
+    {
+      ActivityImpl activity = processDefinition.findActivity(child.getActivityId());
+      String executionId = child.getExecutionId();
+
+      ExecutionEntity execution = executionManager.findExecutionById(executionId);
+
+      if (execution == null)
+      {
+        throw new RuntimeException("no execution for transition instance found");
+      }
+
+      JobEntity transitionJob = execution.getJobs().stream()
+        .filter(j -> j instanceof MessageEntity)
+        .findFirst()
+        .get();
+
+      final TransitionInstance transitionInstance;
+      if (IncomingTransitionJobHandler.TYPE.equals(transitionJob.getJobHandlerType()))
+      {
+        transitionInstance = scopeInstance.newIncomingTransitionInstance(execution, activity);
+      }
+      else if (OutgoingTransitionJobHandler.TYPE.equals(transitionJob.getJobHandlerType()))
+      {
+        OutgoingTransitionConfiguration jobConfiguration = (OutgoingTransitionConfiguration) transitionJob.getJobHandlerConfiguration();
+        final String transitionId = jobConfiguration.getTransitionId();
+        final TransitionImpl transition = transitionId != null ? processDefinition.findTransition(transitionId) : null;
+
+        transitionInstance = scopeInstance.newOutgoingTransitionInstance(activity, execution, transition);
+      }
+      else
+      {
+        throw new RuntimeException("cannot deal with this kind of job: " + transitionJob.getJobHandlerType());
+      }
+
+      if (execution == targetExecution)
+      {
+        targetTransitionInstance = transitionInstance;
+      }
+    }
+  }
+
 
   private void createChildren(ScopeActivityInstance scopeInstance, ProcessDefinitionEntity processDefinition,
       org.camunda.bpm.engine.runtime.ActivityInstance[] children)
@@ -95,6 +153,7 @@ public class ActivityInstanceGenerator {
       if (newActivityInstance instanceof ScopeActivityInstance)
       {
         createChildren((ScopeActivityInstance) newActivityInstance, processDefinition, child.getChildActivityInstances());
+        createChildren((ScopeActivityInstance) newActivityInstance, processDefinition, child.getChildTransitionInstances());
       }
     }
 

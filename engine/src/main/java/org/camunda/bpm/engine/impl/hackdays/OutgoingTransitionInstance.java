@@ -12,7 +12,11 @@
  */
 package org.camunda.bpm.engine.impl.hackdays;
 
+import org.camunda.bpm.engine.impl.context.Context;
+import org.camunda.bpm.engine.impl.jobexecutor.JobDeclaration;
+import org.camunda.bpm.engine.impl.jobexecutor.JobHandlerConfiguration;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.camunda.bpm.engine.impl.persistence.entity.MessageEntity;
 import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
 
@@ -20,21 +24,23 @@ import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
  * @author Thorben Lindhauer
  *
  */
-public class OutgoingTransitionInstance implements ElementInstance {
+public class OutgoingTransitionInstance extends TransitionInstance {
 
 
-  private final ScopeActivityInstance parent;
-  private final ActivityImpl activity;
   private final TransitionImpl transition;
-
-  private final ExecutionEntity execution;
 
   public OutgoingTransitionInstance(ScopeActivityInstance parent, ActivityImpl activity, TransitionImpl transition)
   {
-    this.parent = parent;
-    this.activity = activity;
+    super(parent, activity, parent.getExecution());
     this.transition = transition;
-    this.execution = parent.getExecution();
+    this.execution.setActivity(activity);
+  }
+
+
+  public OutgoingTransitionInstance(ScopeActivityInstance parent, ExecutionEntity execution, ActivityImpl activity, TransitionImpl transition)
+  {
+    super(parent, activity, execution);
+    this.transition = transition;
     this.execution.setActivity(activity);
   }
 
@@ -63,5 +69,48 @@ public class OutgoingTransitionInstance implements ElementInstance {
     sb.append("outgoing transition instance at activity ");
     sb.append(activity.getId());
     return sb.toString();
+  }
+
+
+  @Override
+  public boolean isAsync() {
+    return activity.isAsyncAfter();
+  }
+
+
+  @Override
+  public void createJob() {
+    AsyncAfterJobDeclaration declaration = new AsyncAfterJobDeclaration();
+    MessageEntity job = declaration.createJobInstance(this);
+    Context.getCommandContext().getJobManager().send(job);
+    execution.addJob(job);
+  }
+
+  private class AsyncAfterJobDeclaration extends JobDeclaration<OutgoingTransitionInstance, MessageEntity>
+  {
+
+    public AsyncAfterJobDeclaration() {
+      super(OutgoingTransitionJobHandler.TYPE);
+    }
+
+    @Override
+    protected ExecutionEntity resolveExecution(OutgoingTransitionInstance context) {
+      return context.execution;
+    }
+
+    @Override
+    protected MessageEntity newJobInstance(OutgoingTransitionInstance context) {
+      MessageEntity message = new MessageEntity();
+      message.setExecution(context.execution);
+
+      return message;
+    }
+
+    @Override
+    protected JobHandlerConfiguration resolveJobHandlerConfiguration(OutgoingTransitionInstance context) {
+      return new OutgoingTransitionJobHandler.OutgoingTransitionConfiguration(
+          context.transition != null ? context.transition.getId() : null);
+    }
+
   }
 }

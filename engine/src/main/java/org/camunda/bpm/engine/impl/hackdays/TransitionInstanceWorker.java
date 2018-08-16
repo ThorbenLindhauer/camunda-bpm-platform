@@ -12,26 +12,13 @@
  */
 package org.camunda.bpm.engine.impl.hackdays;
 
-import org.camunda.bpm.engine.impl.ProcessEngineLogger;
-
 /**
  * @author Thorben Lindhauer
  *
  */
-public class EventLoopLogger extends ProcessEngineLogger {
+public interface TransitionInstanceWorker {
 
-  public void logElementSubmitted(ElementInstance elementInstance)
-  {
-    logDebug("0", "Submitted instance {}", elementInstance);
-  }
+  TransitionInstanceState getHandledState();
 
-  public void logElementExecuting(ElementInstance elementInstance)
-  {
-    logDebug("0", "Executing instance {}", elementInstance);
-  }
-
-  public void logElementExecuted(ElementInstance elementInstance, Class<?> workerType)
-  {
-    logDebug("0", "Executed instance {} by worker {}", elementInstance, workerType.getSimpleName());
-  }
+  void handle(TransitionInstance transitionInstance, EventLoop eventLoop);
 }

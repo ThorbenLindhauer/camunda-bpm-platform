@@ -12,33 +12,29 @@
  */
 package org.camunda.bpm.engine.impl.hackdays;
 
-import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
-
 /**
  * @author Thorben Lindhauer
  *
  */
-public class IncomingTransitionInstanceWorker implements TransitionInstanceWorker {
+public class BeforeAsyncWorker implements TransitionInstanceWorker {
 
   @Override
   public TransitionInstanceState getHandledState() {
-    return TransitionInstanceState.AFTER_ASYNC;
+    return TransitionInstanceState.BEFORE_ASYNC;
   }
 
   @Override
   public void handle(TransitionInstance transitionInstance, EventLoop eventLoop) {
 
-    ScopeActivityInstance scopeInstance = transitionInstance.getParent();
-    ActivityImpl activity = transitionInstance.getActivity();
-
-    // 1. destroy transition instance
-    transitionInstance.remove();
-
-    // 2. create activity instance
-    ActivityInstance activityInstance = scopeInstance.newActivityInstance(activity);
-
-    // 3. signal event loop
-    eventLoop.submit(activityInstance);
+    if (transitionInstance.isAsync())
+    {
+      transitionInstance.createJob();
+    }
+    else
+    {
+      transitionInstance.setState(TransitionInstanceState.AFTER_ASYNC);
+      eventLoop.submit(transitionInstance);
+    }
   }
 
 }

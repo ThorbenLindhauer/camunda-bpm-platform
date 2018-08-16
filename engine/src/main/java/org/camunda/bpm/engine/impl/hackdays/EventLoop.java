@@ -26,8 +26,8 @@ import org.camunda.bpm.engine.impl.ProcessEngineLogger;
 public class EventLoop {
 
   private final Map<ActivityInstanceState, ActivityInstanceWorker> activityInstanceWorkers = new HashMap<>();
-  private final IncomingTransitionInstanceWorker incomingTransitionInstanceWorker = new IncomingTransitionInstanceWorker();
-  private final OutgoingTransitionInstanceWorker outgoingTransitionInstanceWorker = new OutgoingTransitionInstanceWorker();
+  private final Map<TransitionInstanceState, TransitionInstanceWorker> incomingTransitionInstanceWorkers = new HashMap<>();
+  private final Map<TransitionInstanceState, TransitionInstanceWorker> outgoingTransitionInstanceWorkers = new HashMap<>();
 
   private final Deque<ElementInstance> stuffToWorkOn = new LinkedList<>();
 
@@ -36,6 +36,12 @@ public class EventLoop {
     activityInstanceWorkers.put(ActivityInstanceState.ACTIVATED, new ExecuteActivityWorker());
     activityInstanceWorkers.put(ActivityInstanceState.COMPLETING, new LeaveActivityWorker());
     activityInstanceWorkers.put(ActivityInstanceState.COMPLETED, new AdvanceActivityHandler());
+
+    incomingTransitionInstanceWorkers.put(TransitionInstanceState.BEFORE_ASYNC, new BeforeAsyncWorker());
+    incomingTransitionInstanceWorkers.put(TransitionInstanceState.AFTER_ASYNC, new IncomingTransitionInstanceWorker());
+
+    outgoingTransitionInstanceWorkers.put(TransitionInstanceState.BEFORE_ASYNC, new BeforeAsyncWorker());
+    outgoingTransitionInstanceWorkers.put(TransitionInstanceState.AFTER_ASYNC, new OutgoingTransitionInstanceWorker());
   }
 
   public void submit(ElementInstance elementInstance)
@@ -56,17 +62,29 @@ public class EventLoop {
         ActivityInstance activityInstance = (ActivityInstance) nextElement;
         ActivityInstanceWorker worker = activityInstanceWorkers.get(activityInstance.getState());
         worker.handle(activityInstance, this);
+        ProcessEngineLogger.EVENT_LOOP_LOGGER.logElementExecuted(nextElement, worker.getClass());
       }
       else if (nextElement instanceof IncomingTransitionInstance)
       {
         IncomingTransitionInstance transitionInstance = (IncomingTransitionInstance) nextElement;
-        incomingTransitionInstanceWorker.handle(transitionInstance, this);
+        TransitionInstanceWorker handler = incomingTransitionInstanceWorkers.get(transitionInstance.getState());
+        handler.handle(transitionInstance, this);
+        ProcessEngineLogger.EVENT_LOOP_LOGGER.logElementExecuted(nextElement, handler.getClass());
       }
       else
       {
         OutgoingTransitionInstance transitionInstance = (OutgoingTransitionInstance) nextElement;
-        outgoingTransitionInstanceWorker.handle(transitionInstance, this);
+        TransitionInstanceWorker handler = outgoingTransitionInstanceWorkers.get(transitionInstance.getState());
+        handler.handle(transitionInstance, this);
+        ProcessEngineLogger.EVENT_LOOP_LOGGER.logElementExecuted(nextElement, handler.getClass());
       }
     }
+  }
+
+  public static void run(ElementInstance elementInstance)
+  {
+    EventLoop eventLoop = new EventLoop();
+    eventLoop.submit(elementInstance);
+    eventLoop.doWork();
   }
 }

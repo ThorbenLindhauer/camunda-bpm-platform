@@ -20,10 +20,12 @@ import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
  * @author Thorben Lindhauer
  *
  */
-public class OutgoingTransitionInstanceWorker {
+public class OutgoingTransitionInstanceWorker implements TransitionInstanceWorker {
 
-  public void handle(OutgoingTransitionInstance transitionInstance, EventLoop eventLoop) {
-    TransitionImpl transition = transitionInstance.getTransition();
+  @Override
+  public void handle(TransitionInstance transitionInstance, EventLoop eventLoop) {
+    // TODO: this should not be required
+    TransitionImpl transition = ((OutgoingTransitionInstance) transitionInstance).getTransition();
     ScopeActivityInstance scopeInstance = transitionInstance.getParent();
 
     if (transition != null)
@@ -45,5 +47,10 @@ public class OutgoingTransitionInstanceWorker {
       scopeInstance.setState(ActivityInstanceState.COMPLETED);
       eventLoop.submit(scopeInstance);
     }
+  }
+
+  @Override
+  public TransitionInstanceState getHandledState() {
+    return TransitionInstanceState.AFTER_ASYNC;
   }
 }
