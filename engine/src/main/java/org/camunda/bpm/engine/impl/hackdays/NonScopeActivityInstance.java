@@ -31,22 +31,12 @@ public class NonScopeActivityInstance extends ActivityInstance {
     this.execution.enterActivityInstance();
   }
 
-  /**
-   * constructor for deserialization
-   */
-  public NonScopeActivityInstance(ScopeActivityInstance parent, ExecutionEntity execution, ActivityImpl activity)
-  {
-    super(parent, activity);
-    this.execution = execution;
-    this.execution.setActivity(activity);
-    this.execution.enterActivityInstance();
-  }
-
   protected ExecutionEntity destroy() {
     ExecutionEntity execution = getExecution();
 
     execution.leaveActivityInstance();
     execution.setActivity(activity.getParentFlowScopeActivity());
+    parent.removeChild(this);
 
     return execution;
   }
@@ -58,7 +48,7 @@ public class NonScopeActivityInstance extends ActivityInstance {
 
   @Override
   public ExecutionEntity getExecution() {
-    ExecutionEntity replacingExecution = execution.getReplacedBy();
+    ExecutionEntity replacingExecution = execution.resolveReplacedBy();
 
     return replacingExecution != null ? replacingExecution : execution;
   }
@@ -71,6 +61,16 @@ public class NonScopeActivityInstance extends ActivityInstance {
     parent.addChild(transitionInstance);
 
     return transitionInstance;
+  }
+
+  @Override
+  public void subscribeToEventsInScope() {
+    // no event subscriptions for non-scope activities
+  }
+
+  public void cancel()
+  {
+    remove();
   }
 
 }

@@ -14,8 +14,10 @@ package org.camunda.bpm.engine.impl.hackdays;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.camunda.bpm.engine.impl.bpmn.parser.EventSubscriptionDeclaration;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.camunda.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
@@ -44,10 +46,6 @@ public class ScopeActivityInstance extends ActivityInstance {
   {
     super(parent, activity);
     this.execution = execution;
-    if (parent != null)
-    {
-      this.parent.children.add(this);
-    }
   }
 
   public ScopeActivityInstance(ScopeActivityInstance parent, ActivityImpl activity, ExecutionEntity attachableExecution)
@@ -147,18 +145,28 @@ public class ScopeActivityInstance extends ActivityInstance {
     }
     else
     {
-      instance = new NonScopeActivityInstance(this, execution, activity);
+      instance = new NonScopeActivityInstance(this, activity, execution);
     }
 
-    children.add(instance);
-    return instance;
+    this.children.add(instance);
 
+    return instance;
   }
 
-  public void remove()
-  {
-    destroy();
-    // TODO: delete attachble execution if necessary
+  @Override
+  public void cancel() {
+    children.forEach(c -> {
+      if (c instanceof ActivityInstance)
+      {
+        ((ActivityInstance) c).cancel();
+      }
+      else
+      {
+        ((TransitionInstance) c).remove();
+      }
+    });
+
+    remove();
   }
 
   protected ExecutionEntity destroy() {
@@ -191,6 +199,17 @@ public class ScopeActivityInstance extends ActivityInstance {
     return children.stream().filter(e -> e instanceof ActivityInstance)
         .map(e -> (ActivityInstance) e)
         .collect(Collectors.toList());
+  }
+
+  public void subscribeToEventsInScope()
+  {
+    Map<String, EventSubscriptionDeclaration> declarationsForScope = EventSubscriptionDeclaration.getDeclarationsForScope(activity);
+
+    declarationsForScope.values().forEach(d -> {
+      if(!d.isStartEvent()) {
+        d.createSubscriptionForExecution(getExecution());
+      }
+    });
   }
 
   @Override

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions id="definitions" 
+  xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+  targetNamespace="Examples">
+  
+  <message id="message" name="message" />
+  
+  <process id="process" isExecutable="true">
+  
+    <startEvent id="theStart" />
+    
+    <sequenceFlow id="flow1" sourceRef="theStart" targetRef="userTask" />
+    
+    <userTask id="userTask" />
+    
+    <sequenceFlow id="flow2" sourceRef="userTask" targetRef="theEnd" />
+    
+    <endEvent id="theEnd" />
+    
+    <boundaryEvent id="messageBoundary" attachedToRef="userTask">
+      <messageEventDefinition messageRef="message" />
+    </boundaryEvent>
+    <sequenceFlow id="flow3" sourceRef="messageBoundary" targetRef="afterBoundary" />
+    <userTask id="afterBoundary" />
+    
+  </process>
+
+</definitions>

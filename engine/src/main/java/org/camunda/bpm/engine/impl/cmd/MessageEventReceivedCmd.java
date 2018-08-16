@@ -23,10 +23,16 @@ import java.util.Map;
 
 import org.camunda.bpm.engine.impl.cfg.CommandChecker;
 import org.camunda.bpm.engine.impl.event.EventType;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstanceGenerator;
+import org.camunda.bpm.engine.impl.hackdays.EventLoop;
+import org.camunda.bpm.engine.impl.hackdays.IncomingTransitionInstance;
+import org.camunda.bpm.engine.impl.hackdays.ScopeActivityInstance;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.EventSubscriptionEntity;
 import org.camunda.bpm.engine.impl.persistence.entity.EventSubscriptionManager;
+import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 
 
 /**
@@ -85,7 +91,15 @@ public class MessageEventReceivedCmd implements Command<Void>, Serializable {
       checker.checkUpdateProcessInstanceById(processInstanceId);
     }
 
-    eventSubscriptionEntity.eventReceived(processVariables, processVariablesLocal, null, false);
+//    eventSubscriptionEntity.eventReceived(processVariables, processVariablesLocal, null, false);
+    ExecutionEntity execution = eventSubscriptionEntity.getExecution();
+    ActivityInstanceGenerator treeGenerator = new ActivityInstanceGenerator(commandContext);
+    ActivityInstance eventScopeInstance = treeGenerator.buildActivityInstanceTree(execution);
+    eventScopeInstance.cancel();
+
+    ScopeActivityInstance parent = eventScopeInstance.getParent();
+    IncomingTransitionInstance transitionInstance = parent.newIncomingTransitionInstance(eventSubscriptionEntity.getActivity());
+    EventLoop.run(transitionInstance);
 
     return null;
   }

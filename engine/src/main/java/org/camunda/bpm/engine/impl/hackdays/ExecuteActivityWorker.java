@@ -26,6 +26,9 @@ public class ExecuteActivityWorker implements ActivityInstanceWorker {
   @Override
   public void handle(ActivityInstance activityInstance, EventLoop eventLoop) {
 
+    // 0. create event subscriptions
+    activityInstance.subscribeToEventsInScope();
+
     // 1. call activity behavior
     activityInstance.invokeExecuteBehavior();
 

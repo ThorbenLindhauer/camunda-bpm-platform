@@ -65,6 +65,8 @@ public abstract class ActivityInstance implements ElementInstance {
     }
   }
 
+  public abstract void subscribeToEventsInScope();
+
   /**
    * on COMPLETING
    */
@@ -90,7 +92,7 @@ public abstract class ActivityInstance implements ElementInstance {
   {
     ExecutionEntity attachableExecution = destroy();
 
-    if (attachableExecution.isConcurrent())
+    if (attachableExecution != null && attachableExecution.isConcurrent())
     {
       ExecutionEntity scopeExecution = attachableExecution.getParent();
       attachableExecution.remove();
@@ -103,6 +105,11 @@ public abstract class ActivityInstance implements ElementInstance {
   public abstract ActivityInstance newActivityInstance(ActivityImpl activity);
 
   public abstract ExecutionEntity getExecution();
+
+  /**
+   * Removes this instance and all its children
+   */
+  public abstract void cancel();
 
   @Override
   public String toString() {

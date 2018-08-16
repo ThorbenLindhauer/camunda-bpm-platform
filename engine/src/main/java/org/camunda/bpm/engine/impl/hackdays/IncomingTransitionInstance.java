@@ -62,11 +62,11 @@ public class IncomingTransitionInstance extends TransitionInstance {
     destroy();
     if (activity.isScope())
     {
-      instance = new ScopeActivityInstance(parent, getExecution(), activity);
+      instance = new ScopeActivityInstance(parent, activity, getExecution());
     }
     else
     {
-      instance = new NonScopeActivityInstance(parent, getExecution(), activity);
+      instance = new NonScopeActivityInstance(parent, activity, getExecution());
     }
 
     parent.addChild(instance);

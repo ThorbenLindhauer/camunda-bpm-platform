@@ -46,7 +46,7 @@ public abstract class TransitionInstance implements ElementInstance {
 
   public ExecutionEntity getExecution()
   {
-    ExecutionEntity replacingExecution = execution.getReplacedBy();
+    ExecutionEntity replacingExecution = execution.resolveReplacedBy();
 
     return replacingExecution != null ? replacingExecution : execution;
   }
