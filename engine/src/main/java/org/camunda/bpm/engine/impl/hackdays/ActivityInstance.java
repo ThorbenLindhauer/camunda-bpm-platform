@@ -90,4 +90,13 @@ public abstract class ActivityInstance implements ElementInstance {
 
   public abstract ExecutionEntity getExecution();
 
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("activity instance at activity ");
+    sb.append(activity != null ? activity.getId() : "<process definition>");
+    sb.append(" in state ");
+    sb.append(getState());
+    return sb.toString();
+  }
 }

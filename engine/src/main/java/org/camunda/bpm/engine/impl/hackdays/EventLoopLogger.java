@@ -20,18 +20,17 @@ import org.camunda.bpm.engine.impl.ProcessEngineLogger;
  */
 public class EventLoopLogger extends ProcessEngineLogger {
 
-  public void logElementSubmitted(ElementInstance elementInstance)
-  {
-    logDebug("0", "Submitted {}#{}", elementInstance.getClass().getSimpleName(), elementInstance.getActivity().getActivityId());
+  public void logElementSubmitted(ElementInstance elementInstance) {
+    logDebug("0", "Submitted {}", elementInstance);
   }
 
   public void logElementExecuting(ElementInstance elementInstance)
   {
-    logDebug("0", "Executing {}#{}", elementInstance.getClass().getSimpleName(), elementInstance.getActivity().getActivityId());
+    logDebug("0", "Executing {}", elementInstance);
   }
 
   public void logElementExecuted(ElementInstance elementInstance, Class<?> workerType)
   {
-    logDebug("0", "Executed {}#{} by ", elementInstance.getClass().getSimpleName(), elementInstance.getActivity().getActivityId(), workerType.getSimpleName());
+    logDebug("0", "Executed {} by {}", elementInstance, workerType.getSimpleName());
   }
 }
