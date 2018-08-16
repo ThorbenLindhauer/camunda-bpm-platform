@@ -13,48 +13,38 @@
 package org.camunda.bpm.engine.test.hackdays;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.runtime.Job;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.test.Deployment;
 import org.camunda.bpm.engine.test.ProcessEngineRule;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.List;
 
 /**
  * @author Nico Rehwaldt
  *
  */
-public class ParallelGatewayTest {
+public class SubProcessTest {
 
   @Rule
   public ProcessEngineRule engineRule = new ProcessEngineRule();
 
   private RuntimeService runtimeService;
-  private ManagementService managementService;
+  private TaskService taskService;
 
   @Before
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
-    managementService = engineRule.getManagementService();
-  }
-
-  @Test
-  @Deployment
-  public void shouldFork()
-  {
-    // when
-    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("process");
-
-    // then
-    List<String> activeActivityIds = runtimeService.getActiveActivityIds(processInstance.getId());
-
-    assertThat(activeActivityIds).hasSize(2);
+    taskService = engineRule.getTaskService();
   }
 
 
@@ -67,5 +57,40 @@ public class ParallelGatewayTest {
 
     // then
     assertThat(processInstance.isEnded()).isTrue();
+
+    assertThat(runtimeService.createExecutionQuery().count()).isEqualTo(0);
   }
+
+
+  @Test
+  @Deployment
+  public void shouldCompleteStepByStep()
+  {
+    // given
+    runtimeService.startProcessInstanceByKey("process");
+
+    // when
+    engineRule.getTaskService().complete("subProcessATask");
+    engineRule.getTaskService().complete("subProcessBTask");
+
+    // then
+    assertThat(runtimeService.createExecutionQuery().count()).isEqualTo(0);
+  }
+
+
+  @Test
+  @Deployment
+  public void shouldInterruptWithBoundaryEvent()
+  {
+    // given
+    runtimeService.startProcessInstanceByKey("process");
+
+    // when
+    runtimeService.correlateMessage("message");
+    taskService.complete("taskAfterMessage");
+
+    // then
+    assertThat(runtimeService.createExecutionQuery().count()).isEqualTo(0);
+  }
+
 }
