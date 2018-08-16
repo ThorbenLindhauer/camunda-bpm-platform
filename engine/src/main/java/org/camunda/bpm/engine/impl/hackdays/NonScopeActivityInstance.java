@@ -14,6 +14,7 @@ package org.camunda.bpm.engine.impl.hackdays;
 
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
+import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
 
 /**
  * @author Thorben Lindhauer
@@ -37,15 +38,17 @@ public class NonScopeActivityInstance extends ActivityInstance {
   {
     super(parent, activity);
     this.execution = execution;
+    this.execution.setActivity(activity);
+    this.execution.enterActivityInstance();
   }
 
-  @Override
-  public void remove() {
-    // do nothing for the time being;
-    // TODO should probably reset activity id, activityinstance id and other stuff
-    this.execution.leaveActivityInstance();
-    this.execution.setActivity(activity.getParentFlowScopeActivity());
+  protected ExecutionEntity destroy() {
+    ExecutionEntity execution = getExecution();
 
+    execution.leaveActivityInstance();
+    execution.setActivity(activity.getParentFlowScopeActivity());
+
+    return execution;
   }
 
   @Override
@@ -55,7 +58,19 @@ public class NonScopeActivityInstance extends ActivityInstance {
 
   @Override
   public ExecutionEntity getExecution() {
-    return execution;
+    ExecutionEntity replacingExecution = execution.getReplacedBy();
+
+    return replacingExecution != null ? replacingExecution : execution;
+  }
+
+  @Override
+  public OutgoingTransitionInstance toOutgoingInstance(TransitionImpl transition) {
+    ExecutionEntity attachableExecution = getExecution();
+    destroy();
+    OutgoingTransitionInstance transitionInstance = new OutgoingTransitionInstance(parent, attachableExecution, activity, transition);
+    parent.addChild(transitionInstance);
+
+    return transitionInstance;
   }
 
 }

@@ -34,10 +34,9 @@ public class OutgoingTransitionInstanceWorker implements TransitionInstanceWorke
       PvmActivity destination = transition.getDestination();
 
       // 2. destroy transition instance
-      transitionInstance.remove();
+      IncomingTransitionInstance incomingInstance = ((OutgoingTransitionInstance) transitionInstance).toIncomingInstance((ActivityImpl) destination);
 
       // 3. create transition instance BEFORE_ACTIVITY and submit to event loop
-      IncomingTransitionInstance incomingInstance = scopeInstance.newIncomingTransitionInstance((ActivityImpl) destination);
       eventLoop.submit(incomingInstance);
     }
     else

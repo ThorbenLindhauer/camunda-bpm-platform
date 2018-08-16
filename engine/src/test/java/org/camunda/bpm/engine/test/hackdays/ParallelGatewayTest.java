@@ -13,7 +13,8 @@
 package org.camunda.bpm.engine.test.hackdays;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+
+import java.util.List;
 
 import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.RuntimeService;
@@ -21,12 +22,9 @@ import org.camunda.bpm.engine.runtime.Job;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.test.Deployment;
 import org.camunda.bpm.engine.test.ProcessEngineRule;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
 
 /**
  * @author Thorben Lindhauer
@@ -69,22 +67,5 @@ public class ParallelGatewayTest {
 
     // then
     assertThat(processInstance.isEnded()).isTrue();
-  }
-
-
-  @Test
-  @Deployment
-  public void shouldCompleteAsyncAfter()
-  {
-    runtimeService.startProcessInstanceByKey("process");
-
-    Job job = managementService.createJobQuery().singleResult();
-
-    // when
-    managementService.executeJob(job.getId());
-
-    // then
-    assertThat(managementService.createJobQuery().count()).isEqualTo(0);
-    assertThat(runtimeService.createExecutionQuery().count()).isEqualTo(0);
   }
 }

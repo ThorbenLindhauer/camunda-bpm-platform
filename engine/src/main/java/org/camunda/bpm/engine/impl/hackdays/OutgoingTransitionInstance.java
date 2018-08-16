@@ -41,18 +41,21 @@ public class OutgoingTransitionInstance extends TransitionInstance {
     return activity;
   }
 
-  public void remove()
-  {
-    parent.removeChild(this);
-    this.execution.setActivity(null);
-  }
-
   public ScopeActivityInstance getParent() {
     return parent;
   }
 
   public TransitionImpl getTransition() {
     return transition;
+  }
+
+  public IncomingTransitionInstance toIncomingInstance(ActivityImpl nextActivity)
+  {
+    destroy();
+    IncomingTransitionInstance transitionInstance = new IncomingTransitionInstance(parent, getExecution(), nextActivity);
+    parent.addChild(transitionInstance);
+
+    return transitionInstance;
   }
 
   @Override
@@ -76,7 +79,7 @@ public class OutgoingTransitionInstance extends TransitionInstance {
     AsyncAfterJobDeclaration declaration = new AsyncAfterJobDeclaration();
     MessageEntity job = declaration.createJobInstance(this);
     Context.getCommandContext().getJobManager().send(job);
-    execution.addJob(job);
+    getExecution().addJob(job);
   }
 
   private class AsyncAfterJobDeclaration extends JobDeclaration<OutgoingTransitionInstance, MessageEntity>
@@ -88,13 +91,13 @@ public class OutgoingTransitionInstance extends TransitionInstance {
 
     @Override
     protected ExecutionEntity resolveExecution(OutgoingTransitionInstance context) {
-      return context.execution;
+      return context.getExecution();
     }
 
     @Override
     protected MessageEntity newJobInstance(OutgoingTransitionInstance context) {
       MessageEntity message = new MessageEntity();
-      message.setExecution(context.execution);
+      message.setExecution(context.getExecution());
 
       return message;
     }

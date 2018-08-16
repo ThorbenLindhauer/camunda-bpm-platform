@@ -33,13 +33,15 @@ public class AdvanceActivityHandler implements ActivityInstanceWorker {
 
     // 1. get outgoing sequence flows from activity instance
     List<TransitionImpl> transitionsToTake = activityInstance.getTransitionsToTake();
-    activityInstance.remove();
 
     // 2. create one transition instance per sequence flow
     // TODO: nicht so toll ist hier die if-else-Konstruktion; vll ist das ins Behavior des jeweiligen Scopes/Aktivität kodierbar?
     if (!transitionsToTake.isEmpty())
     {
-      transitionsToTake.forEach(t -> {
+      TransitionImpl firstTransition = transitionsToTake.get(0);
+      eventLoop.submit(activityInstance.toOutgoingInstance(firstTransition));
+
+      transitionsToTake.subList(1, transitionsToTake.size()).forEach(t -> {
         OutgoingTransitionInstance transitionInstance = scopeInstance.newOutgoingTransitionInstance(activityInstance.getActivity(), t);
         // 3. submit to event loop
         eventLoop.submit(transitionInstance);
@@ -47,13 +49,15 @@ public class AdvanceActivityHandler implements ActivityInstanceWorker {
     }
     else
     {
+
       if (scopeInstance != null)
       {
-        OutgoingTransitionInstance transitionInstance = scopeInstance.newOutgoingTransitionInstance(activityInstance.getActivity(), null);
+        OutgoingTransitionInstance transitionInstance = activityInstance.toOutgoingInstance(null);
         eventLoop.submit(transitionInstance);
       }
       else
       {
+        activityInstance.remove();
         // process instance
         // do nothing else for the time being
       }

@@ -44,15 +44,36 @@ public abstract class TransitionInstance implements ElementInstance {
     return state;
   }
 
+  public ExecutionEntity getExecution()
+  {
+    ExecutionEntity replacingExecution = execution.getReplacedBy();
+
+    return replacingExecution != null ? replacingExecution : execution;
+  }
+
   public void setState(TransitionInstanceState state) {
     this.state = state;
   }
 
   public void remove()
   {
+    ExecutionEntity attachableExecution = destroy();
+
+    if (attachableExecution.isConcurrent())
+    {
+      ExecutionEntity scopeExecution = attachableExecution.getParent();
+      attachableExecution.remove();
+      scopeExecution.tryPruneLastConcurrentChild();
+    }
+  }
+
+  protected ExecutionEntity destroy() {
     parent.removeChild(this);
-    this.execution.setActivity(null);
-    this.execution.setActivityInstanceId(execution.getParentActivityInstanceId());
+    ExecutionEntity execution = getExecution();
+    execution.setActivity(null);
+    execution.setActivityInstanceId(execution.getParentActivityInstanceId());
+
+    return execution;
   }
 
   public ActivityImpl getActivity() {

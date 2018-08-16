@@ -32,10 +32,11 @@ public class IncomingTransitionInstanceWorker implements TransitionInstanceWorke
     ActivityImpl activity = transitionInstance.getActivity();
 
     // 1. destroy transition instance
-    transitionInstance.remove();
-
-    // 2. create activity instance
-    ActivityInstance activityInstance = scopeInstance.newActivityInstance(activity);
+    ActivityInstance activityInstance = ((IncomingTransitionInstance) transitionInstance).toActivityInstance();
+//    transitionInstance.remove();
+//
+//    // 2. create activity instance
+//    ActivityInstance activityInstance = scopeInstance.newActivityInstance(activity);
 
     // 3. signal event loop
     eventLoop.submit(activityInstance);

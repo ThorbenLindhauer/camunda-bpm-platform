@@ -98,6 +98,11 @@ public class ScopeActivityInstance extends ActivityInstance {
     this.children.remove(elementInstance);
   }
 
+  public void addChild(ElementInstance elementInstance)
+  {
+    this.children.add(elementInstance);
+  }
+
   public ActivityInstance newActivityInstance(ActivityImpl activity)
   {
     final ExecutionEntity attachableExecution = createAttachableExecution();
@@ -152,6 +157,13 @@ public class ScopeActivityInstance extends ActivityInstance {
 
   public void remove()
   {
+    destroy();
+    // TODO: delete attachble execution if necessary
+  }
+
+  protected ExecutionEntity destroy() {
+    ExecutionEntity parentExecution = execution.getParent();
+
     if (parent != null)
     {
       parent.removeChild(this);
@@ -161,6 +173,8 @@ public class ScopeActivityInstance extends ActivityInstance {
     this.execution.setActivity(null);
     this.execution.destroy();
     this.execution.remove();
+
+    return parentExecution;
   }
 
   public boolean hasChildren()
@@ -177,5 +191,15 @@ public class ScopeActivityInstance extends ActivityInstance {
     return children.stream().filter(e -> e instanceof ActivityInstance)
         .map(e -> (ActivityInstance) e)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public OutgoingTransitionInstance toOutgoingInstance(TransitionImpl transition) {
+    ExecutionEntity attachableExecution = execution.getParent();
+    destroy();
+    OutgoingTransitionInstance transitionInstance = new OutgoingTransitionInstance(parent, attachableExecution, activity, transition);
+    parent.addChild(transitionInstance);
+
+    return transitionInstance;
   }
 }

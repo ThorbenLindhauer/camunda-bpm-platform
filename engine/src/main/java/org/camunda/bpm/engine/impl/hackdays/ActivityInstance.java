@@ -50,6 +50,8 @@ public abstract class ActivityInstance implements ElementInstance {
     return activity;
   }
 
+  public abstract OutgoingTransitionInstance toOutgoingInstance(TransitionImpl transition);
+
   /**
    * on ACTIVATED
    */
@@ -84,7 +86,19 @@ public abstract class ActivityInstance implements ElementInstance {
     transitionsToTake.add(transition);
   }
 
-  public abstract void remove();
+  public void remove()
+  {
+    ExecutionEntity attachableExecution = destroy();
+
+    if (attachableExecution.isConcurrent())
+    {
+      ExecutionEntity scopeExecution = attachableExecution.getParent();
+      attachableExecution.remove();
+      scopeExecution.tryPruneLastConcurrentChild();
+    }
+  }
+
+  protected abstract ExecutionEntity destroy();
 
   public abstract ActivityInstance newActivityInstance(ActivityImpl activity);
 

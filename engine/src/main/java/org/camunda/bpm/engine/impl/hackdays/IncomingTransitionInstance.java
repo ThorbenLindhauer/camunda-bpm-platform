@@ -42,9 +42,9 @@ public class IncomingTransitionInstance extends TransitionInstance {
   @Override
   public void createJob() {
     AsyncBeforeJobDeclaration declaration = new AsyncBeforeJobDeclaration();
-    MessageEntity job = declaration.createJobInstance(execution);
+    MessageEntity job = declaration.createJobInstance(getExecution());
     Context.getCommandContext().getJobManager().send(job);
-    execution.addJob(job);
+    getExecution().addJob(job);
   }
 
   @Override
@@ -54,6 +54,23 @@ public class IncomingTransitionInstance extends TransitionInstance {
     sb.append("incoming transition instance at activity ");
     sb.append(activity.getId());
     return sb.toString();
+  }
+
+  public ActivityInstance toActivityInstance()
+  {
+    final ActivityInstance instance;
+    destroy();
+    if (activity.isScope())
+    {
+      instance = new ScopeActivityInstance(parent, getExecution(), activity);
+    }
+    else
+    {
+      instance = new NonScopeActivityInstance(parent, getExecution(), activity);
+    }
+
+    parent.addChild(instance);
+    return instance;
   }
 
   private class AsyncBeforeJobDeclaration extends JobDeclaration<ExecutionEntity, MessageEntity>
