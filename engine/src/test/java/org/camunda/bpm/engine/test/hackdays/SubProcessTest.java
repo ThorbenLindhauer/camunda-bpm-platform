@@ -92,14 +92,18 @@ public class SubProcessTest {
   @Deployment
   public void shouldInterruptWithBoundaryEvent()
   {
-    fail("model is noch kaputt");
-
     // given
     runtimeService.startProcessInstanceByKey("process");
 
     // when
     runtimeService.correlateMessage("message");
-    taskService.complete("taskAfterMessage");
+
+    // then
+    Task task = taskService.createTaskQuery().singleResult();
+    assertThat(task.getTaskDefinitionKey()).isEqualTo("taskAfterMessage");
+
+    // when
+    taskService.complete(task.getId());
 
     // then
     assertThat(runtimeService.createExecutionQuery().count()).isEqualTo(0);

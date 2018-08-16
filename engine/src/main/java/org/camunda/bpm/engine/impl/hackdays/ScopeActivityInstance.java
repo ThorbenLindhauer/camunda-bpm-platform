@@ -168,7 +168,7 @@ public class ScopeActivityInstance extends ActivityInstance {
 
   @Override
   public void cancel() {
-    children.forEach(c -> {
+    new ArrayList<>(children).forEach(c -> {
       if (c instanceof ActivityInstance)
       {
         ((ActivityInstance) c).cancel();

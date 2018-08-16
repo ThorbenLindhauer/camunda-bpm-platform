@@ -54,7 +54,6 @@
     <sequenceFlow id="flow13" sourceRef="taskAfterSubProcess" targetRef="theEnd" />
     <endEvent id="theEnd" />
 
-    <!-- Timer defined on outer sub process -->
     <boundaryEvent id="messageBoundary" attachedToRef="outerSubProcess">
 			<messageEventDefinition messageRef="message" />
     </boundaryEvent>
