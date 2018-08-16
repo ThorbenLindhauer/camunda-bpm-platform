@@ -22,16 +22,16 @@ public class EventLoopLogger extends ProcessEngineLogger {
 
   public void logElementSubmitted(ElementInstance elementInstance)
   {
-    logDebug("0", "Submitted instance {}", elementInstance);
+    logDebug("0", "Submitted {}#{}", elementInstance.getClass().getSimpleName(), elementInstance.getActivity().getActivityId());
   }
 
   public void logElementExecuting(ElementInstance elementInstance)
   {
-    logDebug("0", "Executing instance {}", elementInstance);
+    logDebug("0", "Executing {}#{}", elementInstance.getClass().getSimpleName(), elementInstance.getActivity().getActivityId());
   }
 
   public void logElementExecuted(ElementInstance elementInstance, Class<?> workerType)
   {
-    logDebug("0", "Executed instance {} by worker {}", elementInstance, workerType.getSimpleName());
+    logDebug("0", "Executed {}#{} by ", elementInstance.getClass().getSimpleName(), elementInstance.getActivity().getActivityId(), workerType.getSimpleName());
   }
 }
