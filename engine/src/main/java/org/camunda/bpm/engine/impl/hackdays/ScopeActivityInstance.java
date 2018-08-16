@@ -14,6 +14,7 @@ package org.camunda.bpm.engine.impl.hackdays;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
@@ -63,7 +64,8 @@ public class ScopeActivityInstance extends ActivityInstance {
 
   public IncomingTransitionInstance newIncomingTransitionInstance(ActivityImpl activity)
   {
-    IncomingTransitionInstance instance = new IncomingTransitionInstance(this, activity);
+    final ExecutionEntity attachableExecution = createAttachableExecution();
+    IncomingTransitionInstance instance = new IncomingTransitionInstance(this, attachableExecution, activity);
     children.add(instance);
     return instance;
   }
@@ -77,14 +79,16 @@ public class ScopeActivityInstance extends ActivityInstance {
 
   public OutgoingTransitionInstance newOutgoingTransitionInstance(ActivityImpl activity, TransitionImpl transition)
   {
-    OutgoingTransitionInstance instance = new OutgoingTransitionInstance(this, activity, transition);
+    final ExecutionEntity attachableExecution = createAttachableExecution();
+    OutgoingTransitionInstance instance = new OutgoingTransitionInstance(this, attachableExecution, activity, transition);
     children.add(instance);
     return instance;
   }
 
   public OutgoingTransitionInstance newOutgoingTransitionInstance(ActivityImpl activity, ExecutionEntity execution, TransitionImpl transition)
   {
-    OutgoingTransitionInstance instance = new OutgoingTransitionInstance(this, activity, transition);
+
+    OutgoingTransitionInstance instance = new OutgoingTransitionInstance(this, execution, activity, transition);
     children.add(instance);
     return instance;
   }
@@ -96,15 +100,7 @@ public class ScopeActivityInstance extends ActivityInstance {
 
   public ActivityInstance newActivityInstance(ActivityImpl activity)
   {
-    final ExecutionEntity attachableExecution;
-    if (execution.hasChildren())
-    {
-      attachableExecution = (ExecutionEntity) execution.createConcurrentExecution();
-    }
-    else
-    {
-      attachableExecution = execution;
-    }
+    final ExecutionEntity attachableExecution = createAttachableExecution();
 
     // TODO: set own activity id to null
     // TODO: maange activity instance iDS
@@ -121,6 +117,19 @@ public class ScopeActivityInstance extends ActivityInstance {
 
     children.add(instance);
     return instance;
+  }
+
+  private ExecutionEntity createAttachableExecution() {
+    final ExecutionEntity attachableExecution;
+    if (!children.isEmpty())
+    {
+      attachableExecution = (ExecutionEntity) execution.createConcurrentExecution();
+    }
+    else
+    {
+      attachableExecution = execution;
+    }
+    return attachableExecution;
   }
 
   public ActivityInstance newActivityInstance(ExecutionEntity execution, ActivityImpl activity)
@@ -157,6 +166,17 @@ public class ScopeActivityInstance extends ActivityInstance {
   public boolean hasChildren()
   {
     return children.isEmpty();
+  }
+
+  public List<ElementInstance> getChildren() {
+    return children;
+  }
+
+  public List<ActivityInstance> getChildActivityInstances()
+  {
+    return children.stream().filter(e -> e instanceof ActivityInstance)
+        .map(e -> (ActivityInstance) e)
+        .collect(Collectors.toList());
   }
 
   @Override

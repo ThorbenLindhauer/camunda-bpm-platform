@@ -29,14 +29,7 @@ public class OutgoingTransitionInstance extends TransitionInstance {
 
   private final TransitionImpl transition;
 
-  public OutgoingTransitionInstance(ScopeActivityInstance parent, ActivityImpl activity, TransitionImpl transition)
-  {
-    super(parent, activity, parent.getExecution());
-    this.transition = transition;
-    this.execution.setActivity(activity);
-  }
-
-
+  // TODO: it may make sense to separate the use cases of deserialization from database state and creation during process execution
   public OutgoingTransitionInstance(ScopeActivityInstance parent, ExecutionEntity execution, ActivityImpl activity, TransitionImpl transition)
   {
     super(parent, activity, execution);

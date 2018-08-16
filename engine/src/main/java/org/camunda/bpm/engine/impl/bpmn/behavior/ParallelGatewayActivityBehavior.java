@@ -14,11 +14,17 @@
 package org.camunda.bpm.engine.impl.bpmn.behavior;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.camunda.bpm.engine.impl.ProcessEngineLogger;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstanceState;
+import org.camunda.bpm.engine.impl.hackdays.ScopeActivityInstance;
 import org.camunda.bpm.engine.impl.pvm.PvmActivity;
 import org.camunda.bpm.engine.impl.pvm.PvmTransition;
 import org.camunda.bpm.engine.impl.pvm.delegate.ActivityExecution;
+import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
+import org.camunda.bpm.engine.impl.pvm.process.TransitionImpl;
 
 /**
  * Implementation of the Parallel Gateway/AND gateway as definined in the BPMN
@@ -51,6 +57,31 @@ import org.camunda.bpm.engine.impl.pvm.delegate.ActivityExecution;
 public class ParallelGatewayActivityBehavior extends GatewayActivityBehavior {
 
   protected static final BpmnBehaviorLogger LOG = ProcessEngineLogger.BPMN_BEHAVIOR_LOGGER;
+
+  @Override
+  public void execute(ActivityInstance activityInstance) throws Exception {
+    ScopeActivityInstance scopeInstance = activityInstance.getParent();
+    ActivityImpl gateway = activityInstance.getActivity();
+
+    List<ActivityInstance> siblings = scopeInstance.getChildActivityInstances();
+
+    List<ActivityInstance> instancesAtGateway = siblings.stream()
+      .filter(a -> a.getActivity() == gateway)
+      .filter(a -> a.getState() == ActivityInstanceState.ACTIVATED)
+      .collect(Collectors.toList());
+
+    if (instancesAtGateway.size() == gateway.getIncomingTransitions().size())
+    {
+      instancesAtGateway.forEach(a -> {
+        if (a != activityInstance)
+        {
+          a.remove();
+        }
+      });
+
+      activityInstance.setState(ActivityInstanceState.COMPLETING);
+    }
+  }
 
   public void execute(ActivityExecution execution) throws Exception {
 

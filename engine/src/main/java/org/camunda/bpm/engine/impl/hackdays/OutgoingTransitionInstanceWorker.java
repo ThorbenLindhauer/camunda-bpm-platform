@@ -37,7 +37,7 @@ public class OutgoingTransitionInstanceWorker implements TransitionInstanceWorke
       transitionInstance.remove();
 
       // 3. create transition instance BEFORE_ACTIVITY and submit to event loop
-      IncomingTransitionInstance incomingInstance = new IncomingTransitionInstance(scopeInstance, (ActivityImpl) destination);
+      IncomingTransitionInstance incomingInstance = scopeInstance.newIncomingTransitionInstance((ActivityImpl) destination);
       eventLoop.submit(incomingInstance);
     }
     else

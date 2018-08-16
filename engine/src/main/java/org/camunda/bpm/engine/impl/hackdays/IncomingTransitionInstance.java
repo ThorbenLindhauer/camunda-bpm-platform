@@ -26,15 +26,11 @@ import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
  */
 public class IncomingTransitionInstance extends TransitionInstance {
 
-  public IncomingTransitionInstance(ScopeActivityInstance parent, ActivityImpl activity)
-  {
-    super(parent, activity, parent.getExecution());
-    this.execution.setActivity(activity);
-  }
-
+  // TODO: it may make sense to separate the use cases of deserialization from database state and creation during process execution
   public IncomingTransitionInstance(ScopeActivityInstance parent, ExecutionEntity execution, ActivityImpl activity)
   {
     super(parent, activity, execution);
+    this.execution.setActivity(activity);
   }
 
 
