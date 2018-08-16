@@ -67,11 +67,9 @@ public class CompleteTaskCmd implements Command<Void>, Serializable {
 
     ActivityInstanceGenerator treeGenerator = new ActivityInstanceGenerator(Context.getCommandContext());
     ActivityInstance activityInstance = treeGenerator.buildActivityInstanceTree(task.getExecution());
-    activityInstance.setState(ActivityInstanceState.COMPLETING);
+    activityInstance.complete();
 
-    EventLoop eventLoop = new EventLoop();
-    eventLoop.submit(activityInstance);
-    eventLoop.doWork();
+    EventLoop.run(activityInstance);
   }
 
   protected void checkCompleteTask(TaskEntity task, CommandContext commandContext) {

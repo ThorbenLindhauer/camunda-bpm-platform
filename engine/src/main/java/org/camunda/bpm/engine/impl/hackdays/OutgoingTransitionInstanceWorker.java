@@ -43,8 +43,11 @@ public class OutgoingTransitionInstanceWorker implements TransitionInstanceWorke
     {
       transitionInstance.remove();
 
-      scopeInstance.setState(ActivityInstanceState.COMPLETED);
-      eventLoop.submit(scopeInstance);
+      if (!scopeInstance.hasChildren())
+      {
+        scopeInstance.complete();
+        eventLoop.submit(scopeInstance);
+      }
     }
   }
 

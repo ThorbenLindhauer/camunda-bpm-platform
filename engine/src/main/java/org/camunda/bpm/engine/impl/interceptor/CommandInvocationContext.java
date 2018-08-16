@@ -44,9 +44,14 @@ public class CommandInvocationContext {
   protected boolean isExecuting = false;
   protected List<AtomicOperationInvocation> queuedInvocations = new ArrayList<AtomicOperationInvocation>();
   protected BpmnStackTrace bpmnStackTrace = new BpmnStackTrace();
+  protected EventLoop eventLoop = new EventLoop();
 
   public CommandInvocationContext(Command<?> command) {
     this.command = command;
+  }
+
+  public EventLoop getEventLoop() {
+    return eventLoop;
   }
 
   public Throwable getThrowable() {

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.camunda.bpm.engine.impl.cfg.CommandChecker;
+import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.event.EventType;
 import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
 import org.camunda.bpm.engine.impl.hackdays.ActivityInstanceGenerator;
@@ -99,6 +100,7 @@ public class MessageEventReceivedCmd implements Command<Void>, Serializable {
 
     ScopeActivityInstance parent = eventScopeInstance.getParent();
     IncomingTransitionInstance transitionInstance = parent.newIncomingTransitionInstance(eventSubscriptionEntity.getActivity());
+
     EventLoop.run(transitionInstance);
 
     return null;

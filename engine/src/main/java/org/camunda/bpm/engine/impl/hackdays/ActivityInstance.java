@@ -46,6 +46,11 @@ public abstract class ActivityInstance implements ElementInstance {
     this.state = state;
   }
 
+  public void complete()
+  {
+    setState(ActivityInstanceState.COMPLETING);
+  }
+
   public ActivityImpl getActivity() {
     return activity;
   }
@@ -72,7 +77,11 @@ public abstract class ActivityInstance implements ElementInstance {
    */
   public void invokeLeaveBehavior()
   {
-    activity.getActivityBehavior().leave(this);
+    if (activity != null)
+    {
+      activity.getActivityBehavior().leave(this);
+    }
+    // is null in case of process instance
   }
 
   public ScopeActivityInstance getParent() {

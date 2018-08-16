@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import org.camunda.bpm.engine.impl.ProcessEngineLogger;
+import org.camunda.bpm.engine.impl.context.Context;
 
 /**
  * @author Thorben Lindhauer
@@ -30,6 +31,7 @@ public class EventLoop {
   private final Map<TransitionInstanceState, TransitionInstanceWorker> outgoingTransitionInstanceWorkers = new HashMap<>();
 
   private final Deque<ElementInstance> stuffToWorkOn = new LinkedList<>();
+  private boolean isRunning = false;
 
   public EventLoop()
   {
@@ -48,9 +50,16 @@ public class EventLoop {
   {
     stuffToWorkOn.addFirst(elementInstance);
     ProcessEngineLogger.EVENT_LOOP_LOGGER.logElementSubmitted(elementInstance);
+
+    if (!isRunning)
+    {
+      doWork();
+    }
   }
 
-  public void doWork() {
+  private void doWork() {
+    isRunning = true;
+
     while (!stuffToWorkOn.isEmpty())
     {
       ElementInstance nextElement = stuffToWorkOn.removeFirst();
@@ -79,12 +88,12 @@ public class EventLoop {
         ProcessEngineLogger.EVENT_LOOP_LOGGER.logElementExecuted(nextElement, handler.getClass());
       }
     }
+
+    isRunning = false;
   }
 
   public static void run(ElementInstance elementInstance)
   {
-    EventLoop eventLoop = new EventLoop();
-    eventLoop.submit(elementInstance);
-    eventLoop.doWork();
+    Context.getCommandInvocationContext().getEventLoop().submit(elementInstance);
   }
 }

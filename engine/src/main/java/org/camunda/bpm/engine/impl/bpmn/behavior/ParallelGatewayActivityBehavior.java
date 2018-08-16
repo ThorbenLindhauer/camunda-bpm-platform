@@ -79,7 +79,7 @@ public class ParallelGatewayActivityBehavior extends GatewayActivityBehavior {
         }
       });
 
-      activityInstance.setState(ActivityInstanceState.COMPLETING);
+      activityInstance.complete();
     }
   }
 

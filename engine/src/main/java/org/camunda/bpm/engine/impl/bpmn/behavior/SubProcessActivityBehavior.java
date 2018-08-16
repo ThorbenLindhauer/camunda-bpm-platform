@@ -18,10 +18,15 @@ import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 import org.camunda.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.camunda.bpm.engine.impl.bpmn.helper.CompensationUtil;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParse;
+import org.camunda.bpm.engine.impl.hackdays.ActivityInstance;
+import org.camunda.bpm.engine.impl.hackdays.EventLoop;
+import org.camunda.bpm.engine.impl.hackdays.IncomingTransitionInstance;
+import org.camunda.bpm.engine.impl.hackdays.ScopeActivityInstance;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.impl.pvm.PvmActivity;
 import org.camunda.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.camunda.bpm.engine.impl.pvm.delegate.CompositeActivityBehavior;
+import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 
 
 /**
@@ -31,6 +36,14 @@ import org.camunda.bpm.engine.impl.pvm.delegate.CompositeActivityBehavior;
  * @author Joram Barrez
  */
 public class SubProcessActivityBehavior extends AbstractBpmnActivityBehavior implements CompositeActivityBehavior {
+
+  @Override
+  public void execute(ActivityInstance activityInstance) throws Exception {
+    PvmActivity activity = activityInstance.getActivity();
+    ActivityImpl initialActivity = activity.getProperties().get(BpmnProperties.INITIAL_ACTIVITY);
+    IncomingTransitionInstance transitionInstance = ((ScopeActivityInstance) activityInstance).newIncomingTransitionInstance(initialActivity);
+    EventLoop.run(transitionInstance);
+  }
 
   @Override
   public void execute(ActivityExecution execution) throws Exception {

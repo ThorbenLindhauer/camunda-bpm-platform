@@ -54,10 +54,23 @@ public class ScopeActivityInstance extends ActivityInstance {
     this.execution = attachableExecution.createExecution();
     this.execution.setActivity(activity);
     this.execution.enterActivityInstance();
+    // remember our activity instance id in parent execution, so our execution can be reused for non-scope activities
+    // TODO: this is handled differently for scope activities that cannot have child activity instances => not consistent with old engine yet
+    this.execution.getParent().setActivityInstanceId(execution.getActivityInstanceId());
   }
 
   public ExecutionEntity getExecution() {
     return execution;
+  }
+
+  /* (non-Javadoc)
+   * @see org.camunda.bpm.engine.impl.hackdays.ActivityInstance#complete()
+   */
+  @Override
+  public void complete() {
+    super.complete();
+    // in case we are a scope and our children have completed, we need to restore our activity id
+    this.execution.setActivity(activity);
   }
 
   public IncomingTransitionInstance newIncomingTransitionInstance(ActivityImpl activity)
@@ -170,24 +183,30 @@ public class ScopeActivityInstance extends ActivityInstance {
   }
 
   protected ExecutionEntity destroy() {
-    ExecutionEntity parentExecution = execution.getParent();
 
-    if (parent != null)
-    {
-      parent.removeChild(this);
-    }
 
     this.execution.leaveActivityInstance();
     this.execution.setActivity(null);
     this.execution.destroy();
     this.execution.remove();
 
-    return parentExecution;
+    if (parent != null)
+    {
+      parent.removeChild(this);
+
+      ExecutionEntity parentExecution = execution.getParent();
+      parentExecution.leaveActivityInstance();
+      return parentExecution;
+    }
+    else
+    {
+      return null;
+    }
   }
 
   public boolean hasChildren()
   {
-    return children.isEmpty();
+    return !children.isEmpty();
   }
 
   public List<ElementInstance> getChildren() {
@@ -214,8 +233,7 @@ public class ScopeActivityInstance extends ActivityInstance {
 
   @Override
   public OutgoingTransitionInstance toOutgoingInstance(TransitionImpl transition) {
-    ExecutionEntity attachableExecution = execution.getParent();
-    destroy();
+    ExecutionEntity attachableExecution = destroy();
     OutgoingTransitionInstance transitionInstance = new OutgoingTransitionInstance(parent, attachableExecution, activity, transition);
     parent.addChild(transitionInstance);
 

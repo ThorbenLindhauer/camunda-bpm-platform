@@ -57,10 +57,7 @@ public class StartProcessInstanceCmd implements Command<ProcessInstanceWithVaria
 
     IncomingTransitionInstance transitionInstance  = processInstance.newIncomingTransitionInstance(startEvent);
 
-    EventLoop eventLoop = new EventLoop();
-
-    eventLoop.submit(transitionInstance);
-    eventLoop.doWork();
+    EventLoop.run(transitionInstance);
 
     return new ProcessInstanceWithVariablesImpl(processInstance.getExecution(), processInstance.getExecution().getVariables());
 

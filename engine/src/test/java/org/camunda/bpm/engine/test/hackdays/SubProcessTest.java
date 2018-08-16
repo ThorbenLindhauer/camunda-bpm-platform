@@ -20,6 +20,7 @@ import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.runtime.Job;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.engine.test.Deployment;
 import org.camunda.bpm.engine.test.ProcessEngineRule;
 import org.junit.After;
@@ -69,11 +70,20 @@ public class SubProcessTest {
     // given
     runtimeService.startProcessInstanceByKey("process");
 
-    // when
-    engineRule.getTaskService().complete("subProcessATask");
-    engineRule.getTaskService().complete("subProcessBTask");
+    List<Task> tasks = taskService.createTaskQuery().list();
+    assertThat(tasks).hasSize(2);
 
-    // then
+    // when
+    taskService.complete(tasks.get(0).getId());
+    taskService.complete(tasks.get(1).getId());
+
+    // when (2)
+    Task afterBoundaryTask = taskService.createTaskQuery().singleResult();
+    assertThat(afterBoundaryTask.getTaskDefinitionKey()).isEqualTo("taskAfterSubProcess");
+
+    taskService.complete(afterBoundaryTask.getId());
+
+    // then (2)
     assertThat(runtimeService.createExecutionQuery().count()).isEqualTo(0);
   }
 
@@ -82,6 +92,8 @@ public class SubProcessTest {
   @Deployment
   public void shouldInterruptWithBoundaryEvent()
   {
+    fail("model is noch kaputt");
+
     // given
     runtimeService.startProcessInstanceByKey("process");
 

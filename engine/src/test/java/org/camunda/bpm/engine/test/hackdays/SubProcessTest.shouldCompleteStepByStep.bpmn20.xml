@@ -55,10 +55,10 @@
     <endEvent id="theEnd" />
 
     <!-- Timer defined on outer sub process -->
-    <boundaryEvent id="message" attachedToRef="outerSubProcess">
+    <boundaryEvent id="messageBoundary" attachedToRef="outerSubProcess">
 			<messageEventDefinition messageRef="message" />
     </boundaryEvent>
-    <sequenceFlow id="flow14" sourceRef="message" targetRef="taskAfterMessage" />
+    <sequenceFlow id="flow14" sourceRef="messageBoundary" targetRef="taskAfterMessage" />
     <userTask id="taskAfterMessage" name="Task after message" />
     <sequenceFlow id="flow15" sourceRef="taskAfterMessage" targetRef="messageEnd" />
     <endEvent id="messageEnd" />

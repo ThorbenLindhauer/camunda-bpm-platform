@@ -50,7 +50,7 @@ public abstract class FlowNodeActivityBehavior implements SignallableActivityBeh
 
   @Override
   public void execute(ActivityInstance activityInstance) throws Exception {
-    activityInstance.setState(ActivityInstanceState.COMPLETING);
+    activityInstance.complete();
   }
 
   public void leave(ActivityInstance activityInstance)
